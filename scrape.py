@@ -22,6 +22,10 @@ from parsers import discover, find_next_url, parser_for, program_links
 
 log = logging.getLogger("scrape")
 
+# with --split-by-university, rewrite the touched files every N new records so the
+# output folder stays usable during a multi-day crawl (not only at the end of a pass)
+SPLIT_FLUSH_EVERY: int = 250
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Scrape program pages to JSON.")
@@ -155,7 +159,28 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     counts = {"records": 0, "failed": 0, "skipped": 0, "blocked": 0, "robots": 0, "listing_pages": 0, "discovered": 0}
-    touched: set[str] = set()  # universities that got new records this pass
+    touched: set[str] = set()  # universities that got new records since the last flush
+    split_dir = Path(args.out_dir) if args.out_dir else input_format.output_dir_for(urls)
+    country = input_format.country_code(urls)
+    indent_opt = output_format.INDENT if args.indent is None else (args.indent or None)
+    flushed_at = 0
+
+    def flush_split() -> None:
+        """Rewrite this pass's university files + index.json (periodic and at the end)."""
+        nonlocal flushed_at
+        if not args.split_by_university:
+            return
+        records_now = output_format.read_jsonl(jsonl_path)
+        written = output_format.write_university_files(
+            records_now, split_dir, only=set(touched), country_code=country, indent=indent_opt,
+        )
+        if written:
+            log.info(
+                "output: %d university file(s) updated in %s (%d record(s) on disk)",
+                len(written), split_dir, len(records_now),
+            )
+        touched.clear()
+        flushed_at = counts["records"]
     page_limit = args.next_limit or input_format.MAX_PAGES_PER_URL
     follow_next = not args.no_next and input_format.FOLLOW_NEXT_PAGES
     queue: deque[str] = deque()
@@ -274,6 +299,8 @@ def main(argv: list[str] | None = None) -> int:
                 done.add(record["program_url"])
                 touched.add(record.get("university") or "Unknown")
                 counts["records"] += 1
+                if counts["records"] - flushed_at >= SPLIT_FLUSH_EVERY:
+                    flush_split()
                 log.info(
                     "%s ok: %s",
                     tag, record.get("university") or record.get("program_name") or url,
@@ -301,20 +328,8 @@ def main(argv: list[str] | None = None) -> int:
         #    so the final record set never has to live in memory during a huge run)
         final_records = output_format.read_jsonl(jsonl_path)
         group_by = None if args.group_by in (None, "none") else args.group_by
-        indent = output_format.INDENT if args.indent is None else (args.indent or None)
         if args.split_by_university:
-            out_dir = Path(args.out_dir) if args.out_dir else input_format.output_dir_for(urls)
-            written = output_format.write_university_files(
-                final_records,
-                out_dir,
-                only=touched or None,
-                country_code=input_format.country_code(urls),
-                indent=indent,
-            )
-            log.info(
-                "output: %d university file(s) updated in %s (index.json rebuilt from %d record(s))",
-                len(written), out_dir, len(final_records),
-            )
+            flush_split()  # pending universities + a fresh index.json
         if not args.split_by_university or group_by:
             out_path = output_format.write_json(
                 final_records,
@@ -323,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
                 prompt_file=prompt_file,
                 input_file=input_file,
                 group_by=group_by,
-                indent=indent,
+                indent=indent_opt,
             )
             log.info("output: %s", out_path)
         log.info(
