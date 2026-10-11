@@ -1,0 +1,6 @@
+# 5 program pages, one per university (test run with --no-frontier)
+https://www.mastersportal.com/studies/488477/english-with-send.html
+https://www.mastersportal.com/studies/76074/accounting-and-finance.html
+https://www.mastersportal.com/studies/278066/advanced-quantitative-methods-in-social-sciences.html
+https://www.mastersportal.com/studies/504115/ai-law-and-the-creative-economy.html
+https://www.mastersportal.com/studies/365038/acoustics-and-music-technology.html

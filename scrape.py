@@ -10,13 +10,14 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from collections import deque
 from pathlib import Path
 from urllib.parse import urlparse
 
 import input_format
 import output_format
 from fetcher import DEFAULT_DELAY, TIMEOUT, BlockedError, FetchError, Fetcher, RobotsDisallowed
-from parsers import find_next_url, parser_for
+from parsers import discover, find_next_url, parser_for, program_links
 
 log = logging.getLogger("scrape")
 
@@ -33,6 +34,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--no-next", action="store_true", help="Do not follow rel=next pagination links")
     parser.add_argument("--next-limit", type=int, default=None, help="Max pages per URL (default: input_format.MAX_PAGES_PER_URL)")
     parser.add_argument("--fresh", action="store_true", help="Ignore resume log, scrape everything again")
+    parser.add_argument("--no-frontier", action="store_true", help="Ignore persisted crawl state; only the input URLs are processed")
+    parser.add_argument("--bare", action="store_true", help="Write a bare JSON array of records (no meta wrapper)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Debug logging")
     return parser.parse_args(argv)
 
@@ -44,6 +47,8 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)-7s %(message)s",
         datefmt="%H:%M:%S",
     )
+    if args.bare:
+        output_format.WRAP_WITH_META = False
 
     # 1) input: urls + prompt (formats defined in input_format.py)
     try:
@@ -60,10 +65,17 @@ def main(argv: list[str] | None = None) -> int:
 
     # 2) resume state
     jsonl_path = Path(args.jsonl) if args.jsonl else None
+    no_frontier: bool = args.no_frontier
     if args.fresh:
         records: list[dict] = []
         done: set[str] = set()
-        for stale in (output_format.jsonl_path(jsonl_path), output_format.BASE_DIR / output_format.ERRORS_JSONL):
+        stale_files = [output_format.jsonl_path(jsonl_path), output_format.BASE_DIR / output_format.ERRORS_JSONL]
+        if not no_frontier:
+            stale_files += [
+                input_format._set_file(input_format.FRONTIER_FILE),
+                input_format._set_file(input_format.EXPANDED_FILE),
+            ]
+        for stale in stale_files:
             if stale.exists():
                 stale.unlink()
                 log.info("--fresh: removed %s", stale.name)
@@ -73,24 +85,50 @@ def main(argv: list[str] | None = None) -> int:
         if done:
             log.info("resume: %d URL(s) already in %s", len(done), output_format.jsonl_path(jsonl_path).name)
 
+    # crawl frontier: discovered URLs persist across runs, expanded ones are done
+    frontier = [] if no_frontier else input_format.load_frontier()
+    expanded: set[str] = set() if no_frontier else input_format.load_expanded()
+    log.info("frontier: %d URL(s) known | %d already expanded", len(frontier), len(expanded))
+
+    def remember_frontier(links: list[str]) -> None:
+        if not no_frontier:
+            input_format.append_frontier(links)
+
+    def remember_expanded(url: str) -> None:
+        if not no_frontier:
+            input_format.mark_expanded(url)
+
     fetcher = Fetcher(
         delay=args.delay if args.delay is not None else DEFAULT_DELAY,
         timeout=args.timeout if args.timeout is not None else TIMEOUT,
         obey_robots=not args.no_robots,
     )
 
-    counts = {"done": 0, "failed": 0, "skipped": 0, "blocked": 0, "robots": 0}
+    counts = {"records": 0, "failed": 0, "skipped": 0, "blocked": 0, "robots": 0, "listing_pages": 0, "discovered": 0}
+    page_limit = args.next_limit or input_format.MAX_PAGES_PER_URL
+    follow_next = not args.no_next and input_format.FOLLOW_NEXT_PAGES
+    queue: deque[str] = deque()
+    queued: set[str] = set()
+    for u in [*urls, *frontier]:
+        if u not in queued and u not in expanded:
+            queued.add(u)
+            queue.append(u)
+    processed = 0
     try:
-        for index, url in enumerate(urls, 1):
-            tag = f"[{index}/{len(urls)}]"
-            if url in done:
+        while queue:
+            url = queue.popleft()
+            processed += 1
+            tag = f"[{processed} | queued {len(queue)}]"
+            if url in expanded:
                 counts["skipped"] += 1
-                log.info("%s skip (already done): %s", tag, url)
+                log.debug("%s skip (already expanded): %s", tag, url)
                 continue
-            domain = urlparse(url).netloc
-            if domain in fetcher.blocked_domains:
+            if urlparse(url).netloc in fetcher.blocked_domains:
                 counts["blocked"] += 1
-                log.warning("%s skip (domain blocked): %s", tag, url)
+                log.debug("%s skip (domain blocked): %s", tag, url)
+                if all(urlparse(u).netloc in fetcher.blocked_domains for u in queue):
+                    log.warning("every queued URL belongs to a blocked domain -> stopping")
+                    break
                 continue
             try:
                 result = fetcher.fetch(url)
@@ -107,56 +145,94 @@ def main(argv: list[str] | None = None) -> int:
                 log.error("%s fetch failed: %s", tag, exc)
                 continue
 
-            page_parser = parser_for(url)
-            try:
-                record = page_parser.parse(result.html, result.final_url or url)
-            except Exception as exc:  # a bad page must not kill the run
-                counts["failed"] += 1
-                log.exception("%s parse failed: %s", tag, url)
-                output_format.append_error(url, f"parse error: {exc}")
-                continue
-
-            # follow rel="next" pagination and fold every page into this record
-            if not args.no_next and input_format.FOLLOW_NEXT_PAGES:
-                page_limit = args.next_limit or input_format.MAX_PAGES_PER_URL
-                next_url = find_next_url(result.html, url)
-                seen_pages = {url}
+            # --- listing page: discover detail URLs (incl. pagination), no record ---
+            is_listing, entities = discover(result.html, url)
+            if is_listing:
                 pages = 1
-                while next_url and pages < page_limit:
-                    if next_url in seen_pages or urlparse(next_url).netloc in fetcher.blocked_domains:
-                        break
-                    seen_pages.add(next_url)
-                    try:
-                        page = fetcher.fetch(next_url)
-                    except (RobotsDisallowed, BlockedError, FetchError) as exc:
-                        log.warning("%s pagination stopped: %s", tag, exc)
-                        break
-                    try:
-                        page_record = page_parser.parse(page.html, page.final_url or next_url)
-                    except Exception as exc:
-                        log.warning("%s pagination parse failed %s: %s", tag, next_url, exc)
-                        break
-                    record = output_format.merge_records(record, page_record)
-                    pages += 1
-                    log.info("%s page %d merged (%d listings)", tag, pages, len(record.get("listings") or []))
-                    next_url = find_next_url(page.html, next_url)
-
-            ok, reason = output_format.validate(record)
-            if not ok:
-                counts["failed"] += 1
-                output_format.append_error(url, reason)
-                log.warning("%s invalid record: %s (%s)", tag, url, reason)
+                complete = not follow_next
+                if follow_next:
+                    next_url = find_next_url(result.html, url)
+                    seen_pages = {url}
+                    chain_ok = True
+                    while next_url and pages < page_limit:
+                        if next_url in seen_pages:
+                            break  # loop back -> chain fully visited
+                        if urlparse(next_url).netloc in fetcher.blocked_domains:
+                            chain_ok = False
+                            break
+                        seen_pages.add(next_url)
+                        try:
+                            page = fetcher.fetch(next_url)
+                        except (RobotsDisallowed, BlockedError, FetchError) as exc:
+                            log.warning("%s pagination stopped: %s", tag, exc)
+                            chain_ok = False
+                            break
+                        _, more = discover(page.html, next_url)
+                        entities.extend(more)
+                        pages += 1
+                        next_url = find_next_url(page.html, next_url)
+                    complete = chain_ok and (next_url is None or next_url in seen_pages)
+                new_links = [u for u in dict.fromkeys(entities) if u not in queued and u not in expanded]
+                for link in new_links:
+                    queued.add(link)
+                    queue.append(link)
+                remember_frontier(new_links)
+                if complete:
+                    remember_expanded(url)
+                    expanded.add(url)
+                else:
+                    log.warning("%s listing not fully paginated -> will retry next run", tag)
+                counts["listing_pages"] += 1
+                counts["discovered"] += len(new_links)
+                log.info(
+                    "%s listing %s: %d links (%d new) over %d page(s) | queue=%d",
+                    tag, urlparse(url).path or "/", len(set(entities)), len(new_links), pages, len(queue),
+                )
                 continue
 
-            output_format.append_jsonl(record, jsonl_path)
-            records.append(record)
-            done.add(record["program_url"])
-            counts["done"] += 1
-            log.info(
-                "%s ok: %s (%d listings)",
-                tag, record.get("program_name") or record.get("page_title") or url,
-                len(record.get("listings") or []),
-            )
+            # --- detail page -> one record in the sample format ---
+            final_url = result.final_url or url
+            if url not in done and final_url not in done:
+                page_parser = parser_for(url)
+                try:
+                    record = page_parser.parse(result.html, final_url)
+                except Exception as exc:  # a bad page must not kill the run
+                    counts["failed"] += 1
+                    log.exception("%s parse failed: %s", tag, url)
+                    output_format.append_error(url, f"parse error: {exc}")
+                    continue
+
+                ok, reason = output_format.validate(record)
+                if not ok:
+                    counts["failed"] += 1
+                    output_format.append_error(url, reason)
+                    log.warning("%s invalid record: %s (%s)", tag, url, reason)
+                    continue
+
+                output_format.append_jsonl(record, jsonl_path)
+                records.append(record)
+                done.add(record["program_url"])
+                counts["records"] += 1
+                log.info(
+                    "%s ok: %s",
+                    tag, record.get("university") or record.get("program_name") or url,
+                )
+            else:
+                log.debug("%s record exists -> harvesting links only: %s", tag, url)
+
+            # --- harvest this page's own links (university pages -> programs) ---
+            new_links = [
+                u for u in program_links(result.html, final_url)
+                if u not in queued and u not in expanded
+            ]
+            if new_links:
+                queued.update(new_links)
+                queue.extend(new_links)
+                remember_frontier(new_links)
+                counts["discovered"] += len(new_links)
+                log.info("%s %s: %d program link(s) (%d queued)", tag, urlparse(url).path, len(new_links), len(queue))
+            remember_expanded(url)
+            expanded.add(url)
     except KeyboardInterrupt:
         log.warning("interrupted -- writing what we have")
     finally:
@@ -169,12 +245,14 @@ def main(argv: list[str] | None = None) -> int:
             input_file=input_file,
         )
         log.info(
-            "finished: %d scraped, %d resumed, %d skipped robots, %d blocked, %d failed",
-            counts["done"], counts["skipped"], counts["robots"], counts["blocked"], counts["failed"],
+            "finished: %d records, %d listing page(s) -> %d link(s) discovered, "
+            "%d resumed, %d robots-skipped, %d blocked, %d failed",
+            counts["records"], counts["listing_pages"], counts["discovered"],
+            counts["skipped"], counts["robots"], counts["blocked"], counts["failed"],
         )
         log.info("output: %s (%d record(s))", out_path, len(records))
 
-    return 1 if counts["failed"] and not counts["done"] else 0
+    return 1 if counts["failed"] and not counts["records"] else 0
 
 
 if __name__ == "__main__":

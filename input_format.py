@@ -28,6 +28,51 @@ SKIP_INVALID_LINES: bool = True  # drop lines that are not http(s) URLs
 FOLLOW_NEXT_PAGES: bool = True   # follow rel="next" links (listing pagination)
 MAX_PAGES_PER_URL: int = 50      # safety cap per input URL
 
+# Persistent crawl state (so every resumed run can rebuild the queue):
+#   frontier.txt -- every URL discovered so far (append-only)
+#   expanded.txt -- URLs whose own links were already harvested
+FRONTIER_FILE: str = "frontier.txt"
+EXPANDED_FILE: str = "expanded.txt"
+
+
+def _set_file(name: str, path: str | Path | None = None) -> Path:
+    return Path(path) if path else BASE_DIR / name
+
+
+def load_frontier(path: str | Path | None = None) -> list[str]:
+    """Known-but-maybe-unfetched URLs, in discovery order."""
+    p = _set_file(FRONTIER_FILE, path)
+    if not p.exists():
+        return []
+    lines = [ln.strip() for ln in p.read_text(encoding="utf-8-sig").splitlines()]
+    return list(dict.fromkeys(ln for ln in lines if ln.startswith(ALLOWED_SCHEMES)))
+
+
+def load_expanded(path: str | Path | None = None) -> set[str]:
+    """URLs already fetched for links (and listings already paginated)."""
+    p = _set_file(EXPANDED_FILE, path)
+    if not p.exists():
+        return set()
+    return {ln.strip() for ln in p.read_text(encoding="utf-8-sig").splitlines() if ln.strip()}
+
+
+def append_frontier(urls: list[str], path: str | Path | None = None) -> int:
+    """Append newly discovered URLs to frontier.txt -> number written."""
+    if not urls:
+        return 0
+    p = _set_file(FRONTIER_FILE, path)
+    with p.open("a", encoding="utf-8") as fh:
+        for u in urls:
+            fh.write(u + "\n")
+    return len(urls)
+
+
+def mark_expanded(url: str, path: str | Path | None = None) -> None:
+    """Record that this URL's own links have been harvested (append-only log)."""
+    p = _set_file(EXPANDED_FILE, path)
+    with p.open("a", encoding="utf-8") as fh:
+        fh.write(url + "\n")
+
 
 def read_lines(path: Path) -> list[str]:
     """Return non-empty, non-comment lines (stripped) from a text file."""

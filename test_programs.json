@@ -1,0 +1,327 @@
+[
+  {
+    "program_name": "English with SEND",
+    "university": "University of Southampton",
+    "program_url": "https://www.mastersportal.com/studies/488477/english-with-send.html",
+    "official_program_url": "https://www.southampton.ac.uk/courses/english-with-send-masters-pgcert",
+    "degree_type": "Postgraduate Certificate",
+    "delivered": "On Campus",
+    "field_of_study": "Teaching English as a Foreign Language",
+    "duration": {
+      "full_time": "12 months",
+      "part_time": null
+    },
+    "start_date": [
+      "September 2027"
+    ],
+    "apply_date": [
+      "Before July 2027"
+    ],
+    "campus_location": "Southampton, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        {
+          "test": "Duolingo English Test",
+          "min_score": "130"
+        },
+        {
+          "test": "PTE Academic",
+          "min_score": "76"
+        },
+        {
+          "test": "IELTS",
+          "min_score": "7"
+        }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 26200,
+        "currency": "GBP",
+        "per": "year",
+        "note": null
+      },
+      "domestic": {
+        "amount": 9535,
+        "currency": "GBP",
+        "per": "year"
+      }
+    },
+    "credits": 60,
+    "academic_requirements": {
+      "gpa": null,
+      "notes": null
+    },
+    "living_costs": {
+      "amount": "697 - 1093",
+      "currency": "GBP",
+      "per": "month"
+    },
+    "overview": "The English with SEND programme from University of Southampton is an exciting opportunity to gain a SEND specialisation to your PGCE English qualification.",
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-11T04:48:44Z"
+  },
+  {
+    "program_name": "Accounting and Finance",
+    "university": "University of Surrey",
+    "program_url": "https://www.mastersportal.com/studies/76074/accounting-and-finance.html",
+    "official_program_url": "https://www.surrey.ac.uk/postgraduate/accounting-and-finance-msc",
+    "degree_type": "M.Sc.",
+    "delivered": "On Campus",
+    "field_of_study": "Finance",
+    "duration": {
+      "full_time": "12 months",
+      "part_time": null
+    },
+    "start_date": [
+      "February 2027",
+      "September 2027"
+    ],
+    "apply_date": [
+      "Before December 2026",
+      "Before January 2027",
+      "Before July 2027",
+      "Before September 2027"
+    ],
+    "campus_location": "Guildford, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        {
+          "test": "Duolingo English Test",
+          "min_score": "120"
+        },
+        {
+          "test": "TOEFL",
+          "min_score": "88"
+        },
+        {
+          "test": "PTE Academic",
+          "min_score": "67"
+        },
+        {
+          "test": "IELTS",
+          "min_score": "6.5"
+        }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 25900,
+        "currency": "GBP",
+        "per": "year",
+        "note": null
+      },
+      "domestic": {
+        "amount": 15800,
+        "currency": "GBP",
+        "per": "year"
+      }
+    },
+    "credits": 180,
+    "academic_requirements": {
+      "gpa": null,
+      "notes": null
+    },
+    "living_costs": {
+      "amount": "660 - 1140",
+      "currency": "GBP",
+      "per": "month"
+    },
+    "overview": "On the Accounting and Finance course at the University of Surrey you'll learn the skills needed to work in multinational corporations and be a successful decision-maker in an increasingly complex global financial environment.",
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-11T04:48:46Z"
+  },
+  {
+    "program_name": "Advanced Quantitative Methods in Social Sciences",
+    "university": "University of Bath",
+    "program_url": "https://www.mastersportal.com/studies/278066/advanced-quantitative-methods-in-social-sciences.html",
+    "official_program_url": "https://www.bath.ac.uk/courses/postgraduate-2025/taught-postgraduate-courses/mres-advanced-quantitative-methods-in-social-sciences-part-time/",
+    "degree_type": "M.Res.",
+    "delivered": "On Campus",
+    "field_of_study": "Sociology",
+    "duration": {
+      "full_time": "24 months",
+      "part_time": null
+    },
+    "start_date": [
+      "September 2027"
+    ],
+    "apply_date": [
+      "Before July 2027",
+      "Before August 2027"
+    ],
+    "campus_location": "Bath, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        {
+          "test": "TOEFL",
+          "min_score": "90"
+        },
+        {
+          "test": "PTE Academic",
+          "min_score": "62"
+        },
+        {
+          "test": "IELTS",
+          "min_score": "6.5"
+        }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 12225,
+        "currency": "GBP",
+        "per": "year",
+        "note": null
+      },
+      "domestic": {
+        "amount": 2619,
+        "currency": "GBP",
+        "per": "year"
+      }
+    },
+    "credits": 180,
+    "academic_requirements": {
+      "gpa": null,
+      "notes": null
+    },
+    "living_costs": {
+      "amount": "808 - 1228",
+      "currency": "GBP",
+      "per": "month"
+    },
+    "overview": "Develop in-depth knowledge and research skills in social science. You’ll learn advanced techniques to analyse large data sets and draw effective insights in the Advanced Quantitative Methods in Social Sciences degree offered at University of Bath.",
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-11T04:48:48Z"
+  },
+  {
+    "program_name": "AI Law and the Creative Economy",
+    "university": "University of Glasgow",
+    "program_url": "https://www.mastersportal.com/studies/504115/ai-law-and-the-creative-economy.html",
+    "official_program_url": null,
+    "degree_type": "Postgraduate Certificate",
+    "delivered": "Blended",
+    "field_of_study": "Legal Studies",
+    "duration": {
+      "full_time": "10 months",
+      "part_time": null
+    },
+    "start_date": [
+      "September 2027"
+    ],
+    "apply_date": [
+      "Anytime"
+    ],
+    "campus_location": "Glasgow, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        {
+          "test": "TOEFL",
+          "min_score": "96"
+        },
+        {
+          "test": "PTE Academic",
+          "min_score": "70"
+        },
+        {
+          "test": "IELTS",
+          "min_score": "7"
+        }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 6500,
+        "currency": "GBP",
+        "per": "total",
+        "note": null
+      },
+      "domestic": {
+        "amount": 6500,
+        "currency": "GBP",
+        "per": "total"
+      }
+    },
+    "credits": 60,
+    "academic_requirements": {
+      "gpa": null,
+      "notes": null
+    },
+    "living_costs": {
+      "amount": "620 - 1012",
+      "currency": "GBP",
+      "per": "month"
+    },
+    "overview": "The AI Law and the Creative Economy certificate offered by University of Glasgow explores the legal and regulatory dimensions of artificial intelligence, with a focus on the creative and cultural sectors.",
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-11T04:48:51Z"
+  },
+  {
+    "program_name": "Acoustics and Music Technology",
+    "university": "The University of Edinburgh",
+    "program_url": "https://www.mastersportal.com/studies/365038/acoustics-and-music-technology.html",
+    "official_program_url": "https://study.ed.ac.uk/programmes/postgraduate-taught/478-acoustics-and-music-technology",
+    "degree_type": "M.Sc.",
+    "delivered": "On Campus",
+    "field_of_study": "Music",
+    "duration": {
+      "full_time": "12 months",
+      "part_time": null
+    },
+    "start_date": [
+      "September 2027"
+    ],
+    "apply_date": [
+      "Before August 2027"
+    ],
+    "campus_location": "Edinburgh, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        {
+          "test": "TOEFL",
+          "min_score": "100"
+        },
+        {
+          "test": "IELTS",
+          "min_score": "7"
+        }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 34860,
+        "currency": "GBP",
+        "per": "year",
+        "note": null
+      },
+      "domestic": {
+        "amount": 15550,
+        "currency": "GBP",
+        "per": "year"
+      }
+    },
+    "credits": 180,
+    "academic_requirements": {
+      "gpa": null,
+      "notes": null
+    },
+    "living_costs": {
+      "amount": "725 - 1167",
+      "currency": "GBP",
+      "per": "month"
+    },
+    "overview": "Taking the science of sound as your focus, you’ll work in a cross-disciplinary environment. In the Acoustics and Music Technology programme at The University of Edinburgh you will use theoretical and experimental work to explore the musical, technical and multimedia applications of acoustics and audio technology.",
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-11T04:48:54Z"
+  }
+]

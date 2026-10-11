@@ -1,4 +1,4 @@
-"""Polite HTTP fetcher: robots.txt, per-domain delay + jitter, retries.
+﻿"""Polite HTTP fetcher: robots.txt, per-domain delay + jitter, retries.
 
 Edit USER_AGENT / DEFAULT_DELAY / MAX_RETRIES below to change behaviour.
 """
@@ -43,7 +43,11 @@ MAX_RETRIES: int = 3
 BACKOFF_BASE: float = 2.0         # 2s, 4s, 8s ...
 TIMEOUT: float = 30.0
 OBEY_ROBOTS: bool = True
-BLOCKING_STATUS: tuple[int, ...] = (401, 403, 429)
+BLOCKING_STATUS: tuple[int, ...] = (401, 403)
+# 429 = rate limit: honour Retry-After / cool down politely, then stop the domain.
+MAX_RATE_RETRIES: int = 3
+RATE_COOLDOWN_BASE: float = 30.0  # 30s, 60s, 120s ...
+RATE_COOLDOWN_MAX: float = 600.0  # cap for server-provided Retry-After
 
 
 class BlockedError(RuntimeError):
@@ -128,15 +132,37 @@ class Fetcher:
         if not self._robots_allowed(url):
             raise RobotsDisallowed(f"robots.txt disallows {url}")
 
-        last_error: Exception | None = None
-        for attempt in range(1, MAX_RETRIES + 1):
+        attempt = 0
+        rate_hits = 0
+        while True:
             self._throttle(domain)
             try:
                 resp = self._session.get(url, timeout=self.timeout, allow_redirects=True)
             except requests.RequestException as exc:
-                last_error = exc
+                attempt += 1
+                if attempt >= MAX_RETRIES:
+                    raise FetchError(f"giving up on {url}: {exc}") from exc
                 log.warning("attempt %d/%d network error %s: %s", attempt, MAX_RETRIES, url, exc)
                 time.sleep(BACKOFF_BASE**attempt)
+                continue
+
+            if resp.status_code == 429:
+                # rate limited: honour Retry-After (or back off), then stop the domain
+                rate_hits += 1
+                if rate_hits > MAX_RATE_RETRIES:
+                    self.blocked_domains.add(domain)
+                    raise BlockedError(
+                        f"HTTP 429 from {domain} after {MAX_RATE_RETRIES} cooldowns -> stopping domain"
+                    )
+                wait = RATE_COOLDOWN_BASE * 2 ** (rate_hits - 1)
+                retry_after = resp.headers.get("Retry-After", "")
+                if retry_after.strip().isdigit():
+                    wait = min(float(retry_after), RATE_COOLDOWN_MAX)
+                log.warning(
+                    "HTTP 429 from %s -> cooldown %.0fs (%d/%d)",
+                    domain, wait, rate_hits, MAX_RATE_RETRIES,
+                )
+                time.sleep(wait)
                 continue
 
             if resp.status_code in BLOCKING_STATUS:
@@ -145,7 +171,9 @@ class Fetcher:
             if resp.status_code == 404:
                 raise FetchError(f"HTTP 404 {url}")
             if resp.status_code >= 500:
-                last_error = FetchError(f"HTTP {resp.status_code} {url}")
+                attempt += 1
+                if attempt >= MAX_RETRIES:
+                    raise FetchError(f"giving up on {url}: HTTP {resp.status_code}")
                 log.warning("attempt %d/%d server error %s", attempt, MAX_RETRIES, url)
                 time.sleep(BACKOFF_BASE**attempt)
                 continue
@@ -155,6 +183,7 @@ class Fetcher:
             ctype = resp.headers.get("Content-Type", "")
             if ctype and "html" not in ctype and "xml" not in ctype:
                 raise FetchError(f"unsupported content-type {ctype!r} for {url}")
+            if "charset" not in ctype.lower():
+                # no declared charset -> RFC 2616 default (latin-1) mangles UTF-8
+                resp.encoding = "utf-8"
             return FetchResult(url=url, final_url=str(resp.url), status=resp.status_code, html=resp.text)
-
-        raise FetchError(f"giving up on {url}: {last_error}")

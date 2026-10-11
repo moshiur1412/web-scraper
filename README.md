@@ -16,6 +16,16 @@ Resume is automatic: re-run the same command and already-scraped URLs are skippe
 (`programs.jsonl` is the resume log, `errors.jsonl` holds rejected records).
 Use `--fresh` to start over (deletes those logs).
 
+### Small runs (testing)
+
+`--no-frontier` ignores the persisted crawl state (`frontier.txt` / `expanded.txt`)
+so *only* the input URLs are fetched and nothing is appended to those files.
+`--bare` writes a bare JSON array of records instead of the `{meta, programs}` wrapper.
+
+```
+python scrape.py --input urls_test.txt --out test_programs.json --jsonl test_programs.jsonl --no-frontier --bare --fresh
+```
+
 ### Pagination
 
 Listing pages are followed automatically through their *next* link
@@ -65,8 +75,13 @@ class MySiteParser(BaseParser):
 ## Output
 
 `WRAP_WITH_META = True` (default) writes `{"meta": {...prompt, counts...}, "programs": [...]}`.
-Set it to `False` in `output_format.py` for a bare JSON array of records.
+Use `--bare` (or set it to `False` in `output_format.py`) for a bare JSON array of records.
 Missing values are always `null` (or `[]` for lists) -- nothing is ever guessed.
+
+Tuition is always recorded in the **real** fee and currency (mastersportal keeps the
+original in `data-original-amount` / `data-original_html` even when it rewrites the
+shown number into your local currency). `per` is `"year"`, `"month"`, or `"total"`
+when the page prices the whole programme in one payment.
 
 Two field groups exist so every page type maps accurately:
 

@@ -32,10 +32,10 @@ INCLUDE_PROMPT_TEXT: bool = True      # include prompt file text in meta
 # --- validation ------------------------------------------------------------
 REQUIRED_FIELDS: tuple[str, ...] = ("program_url",)
 MISSING_VALUES: tuple[Any, ...] = (None, "", [], {})
+EMPTY_LIST_AS_NULL: bool = True   # no data in a list field -> null (else [])
 
-# --- the record schema (missing values = null, never guess) ----------------
+# --- the record schema: EXACT sample format (missing values = null) --------
 SCHEMA: dict[str, Any] = {
-    "page_title": None,           # raw <title> of the page (always accurate)
     "program_name": None,
     "university": None,
     "program_url": None,
@@ -43,16 +43,19 @@ SCHEMA: dict[str, Any] = {
     "degree_type": None,
     "delivered": None,
     "field_of_study": None,
-    "duration": {"full_time": None, "part_time": None},
-    "start_date": [],
-    "apply_date": [],
-    "campus_location": None,
+    "duration": {
+        "full_time": None,
+        "part_time": None,
+    },
+    "start_date": [],           # e.g. ["September 2027"]
+    "apply_date": [],           # e.g. ["Before July 2027"]
+    "campus_location": None,    # e.g. "Southampton, United Kingdom"
     "language": {
         "taught_in": None,
-        "requirements": [],  # [{"test": str, "min_score": str}, ...]
+        "requirements": [],     # [{"test": str, "min_score": str}, ...]
     },
     "tuition_fee": {
-        "international": {"amount": None, "currency": None, "per": None},
+        "international": {"amount": None, "currency": None, "per": None, "note": None},
         "domestic": {"amount": None, "currency": None, "per": None},
     },
     "credits": None,
@@ -60,8 +63,6 @@ SCHEMA: dict[str, Any] = {
     "living_costs": {"amount": None, "currency": None, "per": None},
     "overview": None,
     "scholarships_available": None,
-    # listing pages: entity list from JSON-LD, e.g. universities on a search page
-    "listings": [],  # [{"name", "url", "description", "rating": {"value","count","best","worst"}}]
     "source": None,
     "scraped_at": None,
 }
@@ -86,14 +87,18 @@ def is_missing(value: Any) -> bool:
 
 
 def clean(value: Any) -> Any:
-    """Recursively strip whitespace from strings; drop empty strings -> None."""
+    """Recursively strip whitespace from strings; empty string -> None.
+    Empty lists -> None when EMPTY_LIST_AS_NULL (no data => null)."""
     if isinstance(value, str):
         stripped = " ".join(value.split())
         return stripped or None
     if isinstance(value, dict):
         return {k: clean(v) for k, v in value.items()}
     if isinstance(value, list):
-        return [clean(v) for v in value if not is_missing(clean(v))]
+        cleaned = [clean(v) for v in value if not is_missing(clean(v))]
+        if not cleaned and EMPTY_LIST_AS_NULL:
+            return None
+        return cleaned
     return value
 
 
@@ -144,52 +149,6 @@ def append_error(url: str, reason: str, path: str | Path | None = None) -> None:
     entry = {"url": url, "reason": reason, "at": now_iso()}
     with p.open("a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry, ensure_ascii=ENSURE_ASCII) + "\n")
-
-
-# --- merging (pagination: fold page 2..N into the first record) ------------
-def _dedupe(items: list[Any]) -> list[Any]:
-    seen: set[str] = set()
-    out: list[Any] = []
-    for item in items:
-        key = json.dumps(item, sort_keys=True, ensure_ascii=False) if isinstance(item, (dict, list)) else str(item)
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(item)
-    return out
-
-
-def _merge_value(base: Any, extra: Any) -> Any:
-    """Fill missing fields of `base` from `extra`; union lists; dicts merge recursively."""
-    if isinstance(base, dict) and isinstance(extra, dict):
-        merged = dict(base)
-        for key, value in extra.items():
-            if key in merged:
-                merged[key] = _merge_value(merged[key], value)
-            else:
-                merged[key] = value
-        return merged
-    if isinstance(base, list) and isinstance(extra, list):
-        return _dedupe(base + extra)
-    return base if not is_missing(base) else extra
-
-
-def merge_records(base: dict[str, Any], extra: dict[str, Any]) -> dict[str, Any]:
-    """Merge a follow-page record into the base record (base wins, lists union)."""
-    merged: dict[str, Any] = {}
-    for key in SCHEMA:
-        merged[key] = _merge_value(copy.deepcopy(base.get(key)), extra.get(key))
-    # listings union by url/name (identical descriptions may differ across pages)
-    listings = list(base.get("listings") or []) + list(extra.get("listings") or [])
-    deduped: dict[str, dict[str, Any]] = {}
-    for item in listings:
-        if not isinstance(item, dict):
-            continue
-        key = item.get("url") or item.get("name") or json.dumps(item, ensure_ascii=False)
-        deduped.setdefault(str(key).lower(), item)
-    merged["listings"] = list(deduped.values())
-    merged["program_url"] = base.get("program_url") or extra.get("program_url")
-    return merged
 
 
 # --- final JSON ------------------------------------------------------------
