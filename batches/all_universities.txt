@@ -1,0 +1,547 @@
+# All UK universities on mastersportal, in listing order (frozen from the crawl).
+# 272 universities total. Used to build batches/batch_NN.txt.
+
+# 001 University Of Surrey
+https://www.mastersportal.com/universities/189/university-of-surrey.html
+# 002 University Of Chester
+https://www.mastersportal.com/universities/184/university-of-chester.html
+# 003 Escp Business School
+https://www.mastersportal.com/universities/202/escp-business-school.html
+# 004 University Of Bath
+https://www.mastersportal.com/universities/236/university-of-bath.html
+# 005 De Montfort University
+https://www.mastersportal.com/universities/245/de-montfort-university.html
+# 006 University Of Portsmouth
+https://www.mastersportal.com/universities/231/university-of-portsmouth.html
+# 007 University Of Sussex
+https://www.mastersportal.com/universities/275/university-of-sussex.html
+# 008 Sheffield Hallam University
+https://www.mastersportal.com/universities/240/sheffield-hallam-university.html
+# 009 University Of Southampton
+https://www.mastersportal.com/universities/357/university-of-southampton.html
+# 010 School Of Advanced Study University Of London
+https://www.mastersportal.com/universities/344/school-of-advanced-study-university-of-london.html
+# 011 University Of Brighton
+https://www.mastersportal.com/universities/524/university-of-brighton.html
+# 012 Teesside University
+https://www.mastersportal.com/universities/520/teesside-university.html
+# 013 University Of Glasgow
+https://www.mastersportal.com/universities/110/university-of-glasgow.html
+# 014 University Of Plymouth
+https://www.mastersportal.com/universities/1773/university-of-plymouth.html
+# 015 Ucam Catholic University Of Murcia
+https://www.mastersportal.com/universities/9209/ucam-catholic-university-of-murcia.html
+# 016 University College Birmingham
+https://www.mastersportal.com/universities/12718/university-college-birmingham.html
+# 017 University Of Huddersfield Distance Learning Unit
+https://www.mastersportal.com/universities/23010/university-of-huddersfield-distance-learning-unit.html
+# 018 Goldsmiths University Of London Online
+https://www.mastersportal.com/universities/24413/goldsmiths-university-of-london-online.html
+# 019 Liverpool Hope University
+https://www.mastersportal.com/universities/290/liverpool-hope-university.html
+# 020 Soas University Of London
+https://www.mastersportal.com/universities/293/soas-university-of-london.html
+# 021 University Of Derby
+https://www.mastersportal.com/universities/196/university-of-derby.html
+# 022 Ucl
+https://www.mastersportal.com/universities/271/ucl.html
+# 023 University Of St Andrews
+https://www.mastersportal.com/universities/215/university-of-st-andrews.html
+# 024 University Of York
+https://www.mastersportal.com/universities/265/university-of-york.html
+# 025 The University Of Lancashire
+https://www.mastersportal.com/universities/217/the-university-of-lancashire.html
+# 026 The University Of Edinburgh
+https://www.mastersportal.com/universities/43/the-university-of-edinburgh.html
+# 027 London Metropolitan University
+https://www.mastersportal.com/universities/386/london-metropolitan-university.html
+# 028 London School Of Hygiene And Tropical Medicine
+https://www.mastersportal.com/universities/425/london-school-of-hygiene-and-tropical-medicine.html
+# 029 The University For The Creative Arts
+https://www.mastersportal.com/universities/670/the-university-for-the-creative-arts.html
+# 030 Cranfield University
+https://www.mastersportal.com/universities/149/cranfield-university.html
+# 031 Uwe Bristol
+https://www.mastersportal.com/universities/150/uwe-bristol.html
+# 032 University Of Sunderland
+https://www.mastersportal.com/universities/551/university-of-sunderland.html
+# 033 Loughborough University
+https://www.mastersportal.com/universities/452/loughborough-university.html
+# 034 University Of Essex
+https://www.mastersportal.com/universities/620/university-of-essex.html
+# 035 Aston University
+https://www.mastersportal.com/universities/1227/aston-university.html
+# 036 Northumbria University
+https://www.mastersportal.com/universities/1241/northumbria-university.html
+# 037 Northeastern University
+https://www.mastersportal.com/universities/11238/northeastern-university.html
+# 038 Escape Studios
+https://www.mastersportal.com/universities/12365/escape-studios.html
+# 039 The London Interdisciplinary School
+https://www.mastersportal.com/universities/22000/the-london-interdisciplinary-school.html
+# 040 University Of Sussex Online
+https://www.mastersportal.com/universities/21977/university-of-sussex-online.html
+# 041 Civis Europes Civic University Alliance
+https://www.mastersportal.com/universities/23901/civis-europes-civic-university-alliance.html
+# 042 Teesside University London
+https://www.mastersportal.com/universities/24089/teesside-university-london.html
+# 043 The University Of Exeter
+https://www.mastersportal.com/universities/302/the-university-of-exeter.html
+# 044 Lancaster University
+https://www.mastersportal.com/universities/114/lancaster-university.html
+# 045 Leeds Beckett University
+https://www.mastersportal.com/universities/482/leeds-beckett-university.html
+# 046 Bangor University
+https://www.mastersportal.com/universities/427/bangor-university.html
+# 047 University Of Liverpool
+https://www.mastersportal.com/universities/754/university-of-liverpool.html
+# 048 Hult International Business School
+https://www.mastersportal.com/universities/638/hult-international-business-school.html
+# 049 University Of Reading
+https://www.mastersportal.com/universities/155/university-of-reading.html
+# 050 Ipag Business School
+https://www.mastersportal.com/universities/1343/ipag-business-school.html
+# 051 Pfh Private University Of Applied Sciences
+https://www.mastersportal.com/universities/1370/pfh-private-university-of-applied-sciences.html
+# 052 Iesa School Of Arts And Culture
+https://www.mastersportal.com/universities/1848/iesa-school-of-arts-and-culture.html
+# 053 London South Bank University
+https://www.mastersportal.com/universities/11506/london-south-bank-university.html
+# 054 University Of Birmingham Online
+https://www.mastersportal.com/universities/12493/university-of-birmingham-online.html
+# 055 Liverpool John Moores University
+https://www.mastersportal.com/universities/12638/liverpool-john-moores-university.html
+# 056 Norland University Of Early Childhood
+https://www.mastersportal.com/universities/24001/norland-university-of-early-childhood.html
+# 057 Nhl Stenden University Of Applied Sciences
+https://www.mastersportal.com/universities/854/nhl-stenden-university-of-applied-sciences.html
+# 058 University Of Kent
+https://www.mastersportal.com/universities/118/university-of-kent.html
+# 059 Cardiff University
+https://www.mastersportal.com/universities/148/cardiff-university.html
+# 060 University Of Leicester
+https://www.mastersportal.com/universities/122/university-of-leicester.html
+# 061 Politecnico Di Torino
+https://www.mastersportal.com/universities/71/politecnico-di-torino.html
+# 062 University Of East Anglia
+https://www.mastersportal.com/universities/106/university-of-east-anglia.html
+# 063 University Of Westminster
+https://www.mastersportal.com/universities/280/university-of-westminster.html
+# 064 Queens University Belfast
+https://www.mastersportal.com/universities/513/queens-university-belfast.html
+# 065 Schiller International University
+https://www.mastersportal.com/universities/497/schiller-international-university.html
+# 066 Manchester Metropolitan University
+https://www.mastersportal.com/universities/713/manchester-metropolitan-university.html
+# 067 The Glasgow School Of Art
+https://www.mastersportal.com/universities/735/the-glasgow-school-of-art.html
+# 068 University Of Huddersfield
+https://www.mastersportal.com/universities/899/university-of-huddersfield.html
+# 069 Glion Institute Of Higher Education
+https://www.mastersportal.com/universities/1225/glion-institute-of-higher-education.html
+# 070 Brunel University Of London
+https://www.mastersportal.com/universities/9881/brunel-university-of-london.html
+# 071 European School Of Economics
+https://www.mastersportal.com/universities/12459/european-school-of-economics.html
+# 072 University Of Essex Online
+https://www.mastersportal.com/universities/17057/university-of-essex-online.html
+# 073 University Of Bath Online
+https://www.mastersportal.com/universities/20014/university-of-bath-online.html
+# 074 Eit Food
+https://www.mastersportal.com/universities/20018/eit-food.html
+# 075 International Humanitarian College Of London
+https://www.mastersportal.com/universities/24547/international-humanitarian-college-of-london.html
+# 076 University Of Bristol
+https://www.mastersportal.com/universities/147/university-of-bristol.html
+# 077 Bournemouth University
+https://www.mastersportal.com/universities/158/bournemouth-university.html
+# 078 University Of Leeds
+https://www.mastersportal.com/universities/151/university-of-leeds.html
+# 079 Newcastle University
+https://www.mastersportal.com/universities/179/newcastle-university.html
+# 080 Queen Mary University Of London
+https://www.mastersportal.com/universities/291/queen-mary-university-of-london.html
+# 081 University Of Dundee
+https://www.mastersportal.com/universities/309/university-of-dundee.html
+# 082 University Of Hertfordshire
+https://www.mastersportal.com/universities/310/university-of-hertfordshire.html
+# 083 Kingston University
+https://www.mastersportal.com/universities/192/kingston-university.html
+# 084 University Of Birmingham
+https://www.mastersportal.com/universities/165/university-of-birmingham.html
+# 085 Edinburgh Napier University
+https://www.mastersportal.com/universities/247/edinburgh-napier-university.html
+# 086 University Of West London
+https://www.mastersportal.com/universities/530/university-of-west-london.html
+# 087 University Of Gloucestershire
+https://www.mastersportal.com/universities/526/university-of-gloucestershire.html
+# 088 Wrexham University
+https://www.mastersportal.com/universities/641/wrexham-university.html
+# 089 University Of Greenwich
+https://www.mastersportal.com/universities/1242/university-of-greenwich.html
+# 090 Abertay University
+https://www.mastersportal.com/universities/1178/abertay-university.html
+# 091 Ulster University
+https://www.mastersportal.com/universities/1409/ulster-university.html
+# 092 University Of Wolverhampton
+https://www.mastersportal.com/universities/1180/university-of-wolverhampton.html
+# 093 International Career Institute Uk
+https://www.mastersportal.com/universities/16154/international-career-institute-uk.html
+# 094 University Of Liverpool Online
+https://www.mastersportal.com/universities/20019/university-of-liverpool-online.html
+# 095 Learna Diploma Msc
+https://www.mastersportal.com/universities/20160/learna-diploma-msc.html
+# 096 Uppsala University
+https://www.mastersportal.com/universities/11/uppsala-university.html
+# 097 University Of Oxford
+https://www.mastersportal.com/universities/35/university-of-oxford.html
+# 098 Trinity College Dublin
+https://www.mastersportal.com/universities/73/trinity-college-dublin.html
+# 099 Anglia Ruskin University
+https://www.mastersportal.com/universities/220/anglia-ruskin-university.html
+# 100 Bath Spa University
+https://www.mastersportal.com/universities/144/bath-spa-university.html
+# 101 University Of Bayreuth
+https://www.mastersportal.com/universities/233/university-of-bayreuth.html
+# 102 University Of Bedfordshire
+https://www.mastersportal.com/universities/248/university-of-bedfordshire.html
+# 103 Sda Bocconi School Of Management
+https://www.mastersportal.com/universities/234/sda-bocconi-school-of-management.html
+# 104 Solent University
+https://www.mastersportal.com/universities/276/solent-university.html
+# 105 Coventry University
+https://www.mastersportal.com/universities/284/coventry-university.html
+# 106 Robert Gordon University
+https://www.mastersportal.com/universities/227/robert-gordon-university.html
+# 107 The University Of Winchester
+https://www.mastersportal.com/universities/251/the-university-of-winchester.html
+# 108 University Of Roehampton
+https://www.mastersportal.com/universities/286/university-of-roehampton.html
+# 109 University Of Worcester
+https://www.mastersportal.com/universities/437/university-of-worcester.html
+# 110 Lincoln Bishop University
+https://www.mastersportal.com/universities/1083/lincoln-bishop-university.html
+# 111 University Of London
+https://www.mastersportal.com/universities/532/university-of-london.html
+# 112 Tbs Education
+https://www.mastersportal.com/universities/634/tbs-education.html
+# 113 University Of Cumbria
+https://www.mastersportal.com/universities/511/university-of-cumbria.html
+# 114 Mip Politecnico Di Milano
+https://www.mastersportal.com/universities/673/mip-politecnico-di-milano.html
+# 115 University Of Aberdeen
+https://www.mastersportal.com/universities/738/university-of-aberdeen.html
+# 116 Technological University Dublin
+https://www.mastersportal.com/universities/127/technological-university-dublin.html
+# 117 Leeds Trinity University
+https://www.mastersportal.com/universities/1181/leeds-trinity-university.html
+# 118 University Of Suffolk
+https://www.mastersportal.com/universities/1086/university-of-suffolk.html
+# 119 University Paris Dauphine
+https://www.mastersportal.com/universities/1606/university-paris-dauphine.html
+# 120 Edge Hill University
+https://www.mastersportal.com/universities/11316/edge-hill-university.html
+# 121 Bimm University
+https://www.mastersportal.com/universities/12616/bimm-university.html
+# 122 Liverpool School Of Tropical Medicine
+https://www.mastersportal.com/universities/14626/liverpool-school-of-tropical-medicine.html
+# 123 Westminster University
+https://www.mastersportal.com/universities/17696/westminster-university.html
+# 124 London School Of Design And Marketing
+https://www.mastersportal.com/universities/20137/london-school-of-design-and-marketing.html
+# 125 Global Institute Of Sport
+https://www.mastersportal.com/universities/23579/global-institute-of-sport.html
+# 126 Institute For Equity University Centre
+https://www.mastersportal.com/universities/24619/institute-for-equity-university-centre.html
+# 127 Shg Universities
+https://www.mastersportal.com/universities/24205/shg-universities.html
+# 128 North Kent College
+https://www.mastersportal.com/universities/23249/north-kent-college.html
+# 129 Central Film School
+https://www.mastersportal.com/universities/24772/central-film-school.html
+# 130 Tetr College Of Business
+https://www.mastersportal.com/universities/24505/tetr-college-of-business.html
+# 131 The University Of Manchester
+https://www.mastersportal.com/universities/255/the-university-of-manchester.html
+# 132 Heriot Watt University
+https://www.mastersportal.com/universities/272/heriot-watt-university.html
+# 133 University Of Lincoln
+https://www.mastersportal.com/universities/242/university-of-lincoln.html
+# 134 Durham University
+https://www.mastersportal.com/universities/154/durham-university.html
+# 135 University Of South Wales
+https://www.mastersportal.com/universities/194/university-of-south-wales.html
+# 136 Middlesex University
+https://www.mastersportal.com/universities/228/middlesex-university.html
+# 137 Arts University Bournemouth
+https://www.mastersportal.com/universities/222/arts-university-bournemouth.html
+# 138 Staffordshire University
+https://www.mastersportal.com/universities/844/staffordshire-university.html
+# 139 London School Of Business And Finance Online
+https://www.mastersportal.com/universities/885/london-school-of-business-and-finance-online.html
+# 140 Royal Veterinary College
+https://www.mastersportal.com/universities/613/royal-veterinary-college.html
+# 141 Icd Academy For Cultural Diplomacy
+https://www.mastersportal.com/universities/1437/icd-academy-for-cultural-diplomacy.html
+# 142 Glasgow Caledonian University
+https://www.mastersportal.com/universities/1393/glasgow-caledonian-university.html
+# 143 Royal Agricultural University
+https://www.mastersportal.com/universities/1655/royal-agricultural-university.html
+# 144 American University Of Greece
+https://www.mastersportal.com/universities/1934/american-university-of-greece.html
+# 145 City St Georges University Of London
+https://www.mastersportal.com/universities/1822/city-st-georges-university-of-london.html
+# 146 Ravensbourne University London
+https://www.mastersportal.com/universities/10851/ravensbourne-university-london.html
+# 147 Cardiff Metropolitan University
+https://www.mastersportal.com/universities/10852/cardiff-metropolitan-university.html
+# 148 Brighton School Of Business And Management
+https://www.mastersportal.com/universities/10902/brighton-school-of-business-and-management.html
+# 149 Ecole De Management De Normandie
+https://www.mastersportal.com/universities/10864/ecole-de-management-de-normandie.html
+# 150 Blackburn College
+https://www.mastersportal.com/universities/12719/blackburn-college.html
+# 151 University Of Chicago
+https://www.mastersportal.com/universities/11781/university-of-chicago.html
+# 152 London School Of International Business
+https://www.mastersportal.com/universities/12315/london-school-of-international-business.html
+# 153 Cambridge School Of Visual Performing Arts
+https://www.mastersportal.com/universities/12723/cambridge-school-of-visual-performing-arts.html
+# 154 The University Of Law Business School
+https://www.mastersportal.com/universities/14017/the-university-of-law-business-school.html
+# 155 The Royal Central School Of Speech And Drama
+https://www.mastersportal.com/universities/15739/the-royal-central-school-of-speech-and-drama.html
+# 156 Stanmore School Of Business
+https://www.mastersportal.com/universities/17367/stanmore-school-of-business.html
+# 157 The Institute Of Cancer Research
+https://www.mastersportal.com/universities/16071/the-institute-of-cancer-research.html
+# 158 Leeds Conservatoire
+https://www.mastersportal.com/universities/20472/leeds-conservatoire.html
+# 159 Regent College London
+https://www.mastersportal.com/universities/19637/regent-college-london.html
+# 160 Sothebys Institute Of Art
+https://www.mastersportal.com/universities/19548/sothebys-institute-of-art.html
+# 161 University Of Gibraltar
+https://www.mastersportal.com/universities/19227/university-of-gibraltar.html
+# 162 Unicaf University Of East London
+https://www.mastersportal.com/universities/21818/unicaf-university-of-east-london.html
+# 163 Arden University Uk
+https://www.mastersportal.com/universities/21260/arden-university-uk.html
+# 164 National Motorsport Academy
+https://www.mastersportal.com/universities/21318/national-motorsport-academy.html
+# 165 Renewable Energy Institute
+https://www.mastersportal.com/universities/23808/renewable-energy-institute.html
+# 166 Exeed College
+https://www.mastersportal.com/universities/22068/exeed-college.html
+# 167 University Of The West Of Scotland
+https://www.mastersportal.com/universities/246/university-of-the-west-of-scotland.html
+# 168 University Of Nottingham
+https://www.mastersportal.com/universities/166/university-of-nottingham.html
+# 169 University Of Strathclyde
+https://www.mastersportal.com/universities/249/university-of-strathclyde.html
+# 170 Royal Holloway University Of London
+https://www.mastersportal.com/universities/307/royal-holloway-university-of-london.html
+# 171 Norwich University Of The Arts
+https://www.mastersportal.com/universities/506/norwich-university-of-the-arts.html
+# 172 University Of East London
+https://www.mastersportal.com/universities/119/university-of-east-london.html
+# 173 Kings College London
+https://www.mastersportal.com/universities/164/kings-college-london.html
+# 174 Naba New Academy Of Fine Arts
+https://www.mastersportal.com/universities/103/naba-new-academy-of-fine-arts.html
+# 175 University Of Deusto
+https://www.mastersportal.com/universities/360/university-of-deusto.html
+# 176 Birmingham City University
+https://www.mastersportal.com/universities/416/birmingham-city-university.html
+# 177 University Of The Highlands And Islands
+https://www.mastersportal.com/universities/466/university-of-the-highlands-and-islands.html
+# 178 University Of Northampton
+https://www.mastersportal.com/universities/434/university-of-northampton.html
+# 179 University Of The Arts London
+https://www.mastersportal.com/universities/422/university-of-the-arts-london.html
+# 180 London School Of Economics And Political Science
+https://www.mastersportal.com/universities/72/london-school-of-economics-and-political-science.html
+# 181 London Business School
+https://www.mastersportal.com/universities/853/london-business-school.html
+# 182 Bucks New University
+https://www.mastersportal.com/universities/1157/bucks-new-university.html
+# 183 Rose Bruford College
+https://www.mastersportal.com/universities/1139/rose-bruford-college.html
+# 184 Regents University London
+https://www.mastersportal.com/universities/1436/regents-university-london.html
+# 185 The New School
+https://www.mastersportal.com/universities/12074/the-new-school.html
+# 186 London Film School
+https://www.mastersportal.com/universities/9355/london-film-school.html
+# 187 Peking University
+https://www.mastersportal.com/universities/11760/peking-university.html
+# 188 Strathclyde Business School
+https://www.mastersportal.com/universities/14025/strathclyde-business-school.html
+# 189 Fairleigh Dickinson University
+https://www.mastersportal.com/universities/16115/fairleigh-dickinson-university.html
+# 190 Harper Adams University
+https://www.mastersportal.com/universities/17743/harper-adams-university.html
+# 191 Northeastern University London
+https://www.mastersportal.com/universities/17864/northeastern-university-london.html
+# 192 York St John University
+https://www.mastersportal.com/universities/17474/york-st-john-university.html
+# 193 Plymouth Marjon University
+https://www.mastersportal.com/universities/17609/plymouth-marjon-university.html
+# 194 American University Of The Caribbean School Of Medicine
+https://www.mastersportal.com/universities/18880/american-university-of-the-caribbean-school-of-medicine.html
+# 195 The University Of Hertfordshire Online
+https://www.mastersportal.com/universities/22973/the-university-of-hertfordshire-online.html
+# 196 Arts University Plymouth
+https://www.mastersportal.com/universities/21851/arts-university-plymouth.html
+# 197 Global Banking School Uk
+https://www.mastersportal.com/universities/23502/global-banking-school-uk.html
+# 198 Unicaf University Of Suffolk
+https://www.mastersportal.com/universities/21819/unicaf-university-of-suffolk.html
+# 199 Le Cordon Bleu
+https://www.mastersportal.com/universities/22089/le-cordon-bleu.html
+# 200 European College Of Business And Management
+https://www.mastersportal.com/universities/22193/european-college-of-business-and-management.html
+# 201 Amity University London
+https://www.mastersportal.com/universities/24436/amity-university-london.html
+# 202 Nottingham Trent University
+https://www.mastersportal.com/universities/592/nottingham-trent-university.html
+# 203 Goldsmiths University Of London
+https://www.mastersportal.com/universities/521/goldsmiths-university-of-london.html
+# 204 University Of Warwick
+https://www.mastersportal.com/universities/183/university-of-warwick.html
+# 205 Swansea University
+https://www.mastersportal.com/universities/145/swansea-university.html
+# 206 Ashridge Business School
+https://www.mastersportal.com/universities/115/ashridge-business-school.html
+# 207 Imperial
+https://www.mastersportal.com/universities/190/imperial.html
+# 208 University Of Salford
+https://www.mastersportal.com/universities/252/university-of-salford.html
+# 209 Canterbury Christ Church University
+https://www.mastersportal.com/universities/448/canterbury-christ-church-university.html
+# 210 The University Of Wales Trinity Saint David
+https://www.mastersportal.com/universities/438/the-university-of-wales-trinity-saint-david.html
+# 211 Royal College Of Art
+https://www.mastersportal.com/universities/436/royal-college-of-art.html
+# 212 Bpp University
+https://www.mastersportal.com/universities/741/bpp-university.html
+# 213 Edhec Business School
+https://www.mastersportal.com/universities/966/edhec-business-school.html
+# 214 Wmg University Of Warwick
+https://www.mastersportal.com/universities/1624/wmg-university-of-warwick.html
+# 215 The Open University Uk
+https://www.mastersportal.com/universities/1865/the-open-university-uk.html
+# 216 Omnes Education
+https://www.mastersportal.com/universities/1466/omnes-education.html
+# 217 Guildhall School Of Music Drama
+https://www.mastersportal.com/universities/1639/guildhall-school-of-music-drama.html
+# 218 The Courtauld Institute Of Art
+https://www.mastersportal.com/universities/1860/the-courtauld-institute-of-art.html
+# 219 Centre For Alternative Technology
+https://www.mastersportal.com/universities/11284/centre-for-alternative-technology.html
+# 220 Metfilm School
+https://www.mastersportal.com/universities/11214/metfilm-school.html
+# 221 University Of Bradford
+https://www.mastersportal.com/universities/10352/university-of-bradford.html
+# 222 Ucfb X Gis
+https://www.mastersportal.com/universities/13034/ucfb-x-gis.html
+# 223 The Scottish Association For Marine Science
+https://www.mastersportal.com/universities/12418/the-scottish-association-for-marine-science.html
+# 224 Plumpton College
+https://www.mastersportal.com/universities/12033/plumpton-college.html
+# 225 Istituto Marangoni
+https://www.mastersportal.com/universities/12601/istituto-marangoni.html
+# 226 Brighton And Sussex Medical School
+https://www.mastersportal.com/universities/14979/brighton-and-sussex-medical-school.html
+# 227 London School Of Planning And Management
+https://www.mastersportal.com/universities/16148/london-school-of-planning-and-management.html
+# 228 Hartpury University
+https://www.mastersportal.com/universities/17949/hartpury-university.html
+# 229 Brunel University London Online
+https://www.mastersportal.com/universities/19803/brunel-university-london-online.html
+# 230 Hyper Island
+https://www.mastersportal.com/universities/21140/hyper-island.html
+# 231 Thinkspace Education
+https://www.mastersportal.com/universities/19876/thinkspace-education.html
+# 232 Metropolitan School Of Business Management
+https://www.mastersportal.com/universities/20887/metropolitan-school-of-business-management.html
+# 233 Architectural Association
+https://www.mastersportal.com/universities/21972/architectural-association.html
+# 234 Unicaf Liverpool John Moores
+https://www.mastersportal.com/universities/21814/unicaf-liverpool-john-moores.html
+# 235 King Stage Business School
+https://www.mastersportal.com/universities/22833/king-stage-business-school.html
+# 236 Mla College
+https://www.mastersportal.com/universities/23929/mla-college.html
+# 237 Walbrook Institute London
+https://www.mastersportal.com/universities/22486/walbrook-institute-london.html
+# 238 Academy Of Live Technology
+https://www.mastersportal.com/universities/23927/academy-of-live-technology.html
+# 239 Falmouth University
+https://www.mastersportal.com/universities/392/falmouth-university.html
+# 240 University Of Cambridge
+https://www.mastersportal.com/universities/34/university-of-cambridge.html
+# 241 Aarhus University
+https://www.mastersportal.com/universities/26/aarhus-university.html
+# 242 Queen Margaret University
+https://www.mastersportal.com/universities/121/queen-margaret-university.html
+# 243 Aberystwyth University
+https://www.mastersportal.com/universities/112/aberystwyth-university.html
+# 244 Keele University
+https://www.mastersportal.com/universities/253/keele-university.html
+# 245 University Of The Built Environment
+https://www.mastersportal.com/universities/209/university-of-the-built-environment.html
+# 246 University Of Sheffield
+https://www.mastersportal.com/universities/232/university-of-sheffield.html
+# 247 Oxford Brookes University
+https://www.mastersportal.com/universities/173/oxford-brookes-university.html
+# 248 Richmond American University In London
+https://www.mastersportal.com/universities/809/richmond-american-university-in-london.html
+# 249 Birkbeck University Of London
+https://www.mastersportal.com/universities/399/birkbeck-university-of-london.html
+# 250 Royal Welsh College Of Music Drama
+https://www.mastersportal.com/universities/624/royal-welsh-college-of-music-drama.html
+# 251 International Business School
+https://www.mastersportal.com/universities/947/international-business-school.html
+# 252 University Of Chichester
+https://www.mastersportal.com/universities/1240/university-of-chichester.html
+# 253 Warnborough College
+https://www.mastersportal.com/universities/1760/warnborough-college.html
+# 254 The University Of Law
+https://www.mastersportal.com/universities/1888/the-university-of-law.html
+# 255 Gisma University Of Applied Sciences
+https://www.mastersportal.com/universities/15849/gisma-university-of-applied-sciences.html
+# 256 Scotlands Rural College
+https://www.mastersportal.com/universities/16359/scotlands-rural-college.html
+# 257 Liu Post
+https://www.mastersportal.com/universities/15999/liu-post.html
+# 258 Leeds Arts University
+https://www.mastersportal.com/universities/15956/leeds-arts-university.html
+# 259 Westford University College
+https://www.mastersportal.com/universities/15943/westford-university-college.html
+# 260 Arden University Online
+https://www.mastersportal.com/universities/15864/arden-university-online.html
+# 261 The Aga Khan University
+https://www.mastersportal.com/universities/17125/the-aga-khan-university.html
+# 262 St Marys University Twickenham London
+https://www.mastersportal.com/universities/17728/st-marys-university-twickenham-london.html
+# 263 London Performing Academy Of Music
+https://www.mastersportal.com/universities/20288/london-performing-academy-of-music.html
+# 264 Roffey Park Institute
+https://www.mastersportal.com/universities/20352/roffey-park-institute.html
+# 265 Apsley Business School
+https://www.mastersportal.com/universities/22189/apsley-business-school.html
+# 266 London School Of Innovation
+https://www.mastersportal.com/universities/22472/london-school-of-innovation.html
+# 267 National Design Academy
+https://www.mastersportal.com/universities/21320/national-design-academy.html
+# 268 The Liverpool Institute For Performing Arts
+https://www.mastersportal.com/universities/21910/the-liverpool-institute-for-performing-arts.html
+# 269 Amos Sport Business School
+https://www.mastersportal.com/universities/21169/amos-sport-business-school.html
+# 270 University Of Stirling
+https://www.mastersportal.com/universities/444/university-of-stirling.html
+# 271 University Of Hull
+https://www.mastersportal.com/universities/389/university-of-hull.html
+# 272 University Of Buckingham
+https://www.mastersportal.com/universities/465/university-of-buckingham.html

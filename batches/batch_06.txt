@@ -1,0 +1,25 @@
+# Batch 06 -- universities 251-272 (22 universities, mastersportal listing order).
+# Run:  run_batch.bat 6
+
+https://www.mastersportal.com/universities/947/international-business-school.html
+https://www.mastersportal.com/universities/1240/university-of-chichester.html
+https://www.mastersportal.com/universities/1760/warnborough-college.html
+https://www.mastersportal.com/universities/1888/the-university-of-law.html
+https://www.mastersportal.com/universities/15849/gisma-university-of-applied-sciences.html
+https://www.mastersportal.com/universities/16359/scotlands-rural-college.html
+https://www.mastersportal.com/universities/15999/liu-post.html
+https://www.mastersportal.com/universities/15956/leeds-arts-university.html
+https://www.mastersportal.com/universities/15943/westford-university-college.html
+https://www.mastersportal.com/universities/15864/arden-university-online.html
+https://www.mastersportal.com/universities/17125/the-aga-khan-university.html
+https://www.mastersportal.com/universities/17728/st-marys-university-twickenham-london.html
+https://www.mastersportal.com/universities/20288/london-performing-academy-of-music.html
+https://www.mastersportal.com/universities/20352/roffey-park-institute.html
+https://www.mastersportal.com/universities/22189/apsley-business-school.html
+https://www.mastersportal.com/universities/22472/london-school-of-innovation.html
+https://www.mastersportal.com/universities/21320/national-design-academy.html
+https://www.mastersportal.com/universities/21910/the-liverpool-institute-for-performing-arts.html
+https://www.mastersportal.com/universities/21169/amos-sport-business-school.html
+https://www.mastersportal.com/universities/444/university-of-stirling.html
+https://www.mastersportal.com/universities/389/university-of-hull.html
+https://www.mastersportal.com/universities/465/university-of-buckingham.html
