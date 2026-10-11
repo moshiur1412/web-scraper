@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# crawl state / logs (rebuildable)
+frontier.txt
+expanded.txt
+errors.jsonl
+scrape_run*.log
+*.log
+
+# local test resume log (sample output test_programs.json is committed)
+test_programs.jsonl

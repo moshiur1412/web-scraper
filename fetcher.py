@@ -1,0 +1,160 @@
+"""Polite HTTP fetcher: robots.txt, per-domain delay + jitter, retries.
+
+Edit USER_AGENT / DEFAULT_DELAY / MAX_RETRIES below to change behaviour.
+"""
+from __future__ import annotations
+
+import logging
+import random
+import time
+from dataclasses import dataclass
+from urllib.parse import urlparse
+from urllib.robotparser import RobotFileParser
+
+import requests
+
+log = logging.getLogger("scrape")
+
+# --- settings --------------------------------------------------------------
+USER_AGENT: str = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+)
+# Full browser-like headers: Cloudflare 403s requests that lack sec-fetch-*/sec-ch-ua*.
+BROWSER_HEADERS: dict[str, str] = {
+    "sec-ch-ua": '"Chromium";v="131", "Google Chrome";v="131", "Not_A Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "Upgrade-Insecure-Requests": "1",
+    "Accept": (
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,"
+        "*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    ),
+    "sec-fetch-site": "none",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-user": "?1",
+    "sec-fetch-dest": "document",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Priority": "u=0, i",
+}
+DEFAULT_DELAY: float = 3.0        # seconds between requests to same domain
+DELAY_JITTER: float = 1.0         # extra random 0..JITTER seconds
+MAX_RETRIES: int = 3
+BACKOFF_BASE: float = 2.0         # 2s, 4s, 8s ...
+TIMEOUT: float = 30.0
+OBEY_ROBOTS: bool = True
+BLOCKING_STATUS: tuple[int, ...] = (401, 403, 429)
+
+
+class BlockedError(RuntimeError):
+    """Site said stop (403/429/CAPTCHA) -- abandon this domain."""
+
+
+class RobotsDisallowed(RuntimeError):
+    """robots.txt forbids this URL."""
+
+
+class FetchError(RuntimeError):
+    """Non-blocking failure (404, 5xx after retries, network error)."""
+
+
+@dataclass
+class FetchResult:
+    url: str
+    final_url: str
+    status: int
+    html: str
+
+
+class Fetcher:
+    def __init__(
+        self,
+        delay: float = DEFAULT_DELAY,
+        user_agent: str = USER_AGENT,
+        timeout: float = TIMEOUT,
+        obey_robots: bool = OBEY_ROBOTS,
+    ) -> None:
+        self.delay = delay
+        self.timeout = timeout
+        self.obey_robots = obey_robots
+        self.blocked_domains: set[str] = set()
+        self._session = requests.Session()
+        self._session.headers.update({"User-Agent": user_agent})
+        self._session.headers.update(BROWSER_HEADERS)
+        self._last_request: dict[str, float] = {}
+        self._robots: dict[str, RobotFileParser | None] = {}
+
+    # --- politeness --------------------------------------------------------
+    def _throttle(self, domain: str) -> None:
+        wait = self.delay + random.uniform(0, DELAY_JITTER)
+        last = self._last_request.get(domain)
+        if last is not None:
+            remaining = wait - (time.monotonic() - last)
+            if remaining > 0:
+                time.sleep(remaining)
+        self._last_request[domain] = time.monotonic()
+
+    def _robots_allowed(self, url: str) -> bool:
+        if not self.obey_robots:
+            return True
+        parts = urlparse(url)
+        root = f"{parts.scheme}://{parts.netloc}"
+        if root not in self._robots:
+            self._robots[root] = self._load_robots(root)
+        rp = self._robots[root]
+        return True if rp is None else rp.can_fetch(self._session.headers["User-Agent"], url)
+
+    def _load_robots(self, root: str) -> RobotFileParser | None:
+        rp = RobotFileParser()
+        try:
+            resp = self._session.get(f"{root}/robots.txt", timeout=self.timeout)
+            if resp.status_code in (401, 403):
+                log.warning("robots.txt locked (%s) -> treating as disallow", root)
+                rp.parse(["User-agent: *", "Disallow: /"])
+            elif resp.status_code in (404, 410) or resp.status_code >= 500:
+                rp.parse([])  # missing/broken robots -> allow
+            else:
+                rp.parse(resp.text.splitlines())
+        except requests.RequestException as exc:
+            log.warning("robots.txt fetch failed for %s (%s) -> allowing", root, exc)
+            rp.parse([])
+        return rp
+
+    # --- fetching ----------------------------------------------------------
+    def fetch(self, url: str) -> FetchResult:
+        domain = urlparse(url).netloc
+        if domain in self.blocked_domains:
+            raise BlockedError(f"domain already blocked: {domain}")
+        if not self._robots_allowed(url):
+            raise RobotsDisallowed(f"robots.txt disallows {url}")
+
+        last_error: Exception | None = None
+        for attempt in range(1, MAX_RETRIES + 1):
+            self._throttle(domain)
+            try:
+                resp = self._session.get(url, timeout=self.timeout, allow_redirects=True)
+            except requests.RequestException as exc:
+                last_error = exc
+                log.warning("attempt %d/%d network error %s: %s", attempt, MAX_RETRIES, url, exc)
+                time.sleep(BACKOFF_BASE**attempt)
+                continue
+
+            if resp.status_code in BLOCKING_STATUS:
+                self.blocked_domains.add(domain)
+                raise BlockedError(f"HTTP {resp.status_code} from {domain} -> stopping domain")
+            if resp.status_code == 404:
+                raise FetchError(f"HTTP 404 {url}")
+            if resp.status_code >= 500:
+                last_error = FetchError(f"HTTP {resp.status_code} {url}")
+                log.warning("attempt %d/%d server error %s", attempt, MAX_RETRIES, url)
+                time.sleep(BACKOFF_BASE**attempt)
+                continue
+            if resp.status_code >= 400:
+                raise FetchError(f"HTTP {resp.status_code} {url}")
+
+            ctype = resp.headers.get("Content-Type", "")
+            if ctype and "html" not in ctype and "xml" not in ctype:
+                raise FetchError(f"unsupported content-type {ctype!r} for {url}")
+            return FetchResult(url=url, final_url=str(resp.url), status=resp.status_code, html=resp.text)
+
+        raise FetchError(f"giving up on {url}: {last_error}")

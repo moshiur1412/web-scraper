@@ -1,0 +1,76 @@
+Role: Senior Python developer.
+
+Task: Build a polite, resumable CLI scraper that reads a list of program page URLs and saves structured data to JSON.
+
+## Input
+- `urls.txt` (one program URL per line). Source = pages I am allowed to access (e.g. official university program pages).
+- CLI: `python scrape.py --input urls.txt --out programs.jsonl --delay 3 --concurrency 3`
+
+## Output schema (Pydantic v2 model, missing values = null, never guess)
+{
+    "program_name": "English with SEND",
+    "university": "University of Southampton",
+    "program_url": "https://www.mastersportal.com/studies/488477/english-with-send.html",
+    "official_program_url": null,
+    "degree_type": "Postgraduate Certificate",
+    "delivered": "On Campus",
+    "field_of_study": null,
+    "duration": {
+      "full_time": "12 months",
+      "part_time": null
+    },
+    "start_date": ["September 2027"],
+    "apply_date": ["Before July 2027"],
+    "campus_location": "Southampton, United Kingdom",
+    "language": {
+      "taught_in": "English",
+      "requirements": [
+        { "test": "Duolingo English Test", "min_score": "130" },
+        { "test": "PTE Academic", "min_score": "76" },
+        { "test": "IELTS", "min_score": "7" }
+      ]
+    },
+    "tuition_fee": {
+      "international": {
+        "amount": 4272125,
+        "currency": "BDT",
+        "per": "year",
+        "note": "Mastersportal-এর দেখানো রূপান্তরিত মান, আসল মুদ্রা নয়"
+      },
+      "domestic": { "amount": null, "currency": null, "per": null }
+    },
+    "credits": null,
+    "academic_requirements": { "gpa": null, "notes": null },
+    "living_costs": { "amount": null, "currency": null, "per": null },
+    "overview": null,
+    "scholarships_available": true,
+    "source": "mastersportal",
+    "scraped_at": "2026-10-10T00:00:00Z"
+  }
+
+## Extraction order (stop at first that works)
+1. JSON-LD (`<script type="application/ld+json">`) or embedded state JSON
+2. Public JSON API seen in the page's own network calls
+3. HTML parsing with selectolax/BeautifulSoup
+4. Playwright (headless) only as a last resort; block images/fonts/CSS
+
+## Rules (must follow)
+- Check and obey `robots.txt` per domain (urllib.robotparser); skip disallowed URLs and log them.
+- Do NOT bypass CAPTCHA, Cloudflare, logins, or rate limits. On 403/429/CAPTCHA: stop that domain, log it, exit cleanly.
+- Respect `--delay` (+ random jitter), `asyncio.Semaphore(concurrency)`, custom honest User-Agent, retry with exponential backoff (max 3).
+- Resume: append one JSON object per line to `.jsonl`; skip URLs already present.
+- Normalize: currency symbols -> ISO code, "12 months"/"1 year" -> consistent format, strip whitespace.
+- Validate each record with Pydantic; invalid records go to `errors.jsonl` with URL + reason.
+- Final step: convert `.jsonl` -> `programs.json` (pretty-printed, UTF-8, ensure_ascii=False).
+- Log progress with `logging` (count done/failed/skipped).
+
+## Code standards
+- Python 3.12, type hints everywhere, small functions, no duplicated logic.
+- Structure: `scrape.py` (CLI), `fetcher.py` (HTTP + robots + rate limit), `parsers.py` (per-site parser classes with a common interface), `models.py` (Pydantic), `storage.py` (JSONL/JSON).
+- Parsers must be pluggable: one class per domain, selected by hostname.
+- Include `requirements.txt` and a short README with run steps.
+- Add 3 pytest tests using saved sample HTML (parser + normalizer + resume logic).
+
+## Deliverable
+Full working code for all files, then a short summary of how to add a new site parser.
+
