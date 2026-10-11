@@ -26,7 +26,7 @@ SKIP_INVALID_LINES: bool = True  # drop lines that are not http(s) URLs
 
 # --- crawling --------------------------------------------------------------
 FOLLOW_NEXT_PAGES: bool = True   # follow rel="next" links (listing pagination)
-MAX_PAGES_PER_URL: int = 50      # safety cap per input URL
+MAX_PAGES_PER_URL: int = 200     # safety cap per listing (4000 items at 20/page)
 
 # Persistent crawl state (so every resumed run can rebuild the queue):
 #   frontier.txt -- every URL discovered so far (append-only)

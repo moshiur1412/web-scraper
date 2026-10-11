@@ -152,24 +152,41 @@ def append_error(url: str, reason: str, path: str | Path | None = None) -> None:
 
 
 # --- final JSON ------------------------------------------------------------
+def group_records(
+    records: list[dict[str, Any]], group_by: str | None
+) -> dict[str, list[dict[str, Any]]] | list[dict[str, Any]]:
+    """group_by='university' -> {'University of X': [records...], ...} (stable order)."""
+    if not group_by:
+        return records
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        key = record.get(group_by) or "Unknown"
+        grouped.setdefault(key, []).append(record)
+    return grouped
+
+
 def build_payload(
     records: list[dict[str, Any]],
     prompt_text: str = "",
     prompt_file: str = "",
     input_file: str = "",
+    group_by: str | None = None,
 ) -> Any:
     """What gets written to OUT_JSON (meta wrapper optional)."""
+    body = group_records(records, group_by)
     if not WRAP_WITH_META:
-        return records
+        return body
     meta: dict[str, Any] = {
         "generated_at": now_iso(),
         "input_file": input_file,
         "prompt_file": prompt_file,
         "record_count": len(records),
+        "grouped_by": group_by,
     }
     if INCLUDE_PROMPT_TEXT:
         meta["prompt"] = prompt_text
-    return {"meta": meta, "programs": records}
+    wrapper = "universities" if group_by == "university" else "programs"
+    return {"meta": meta, wrapper: body}
 
 
 def write_json(
@@ -178,10 +195,12 @@ def write_json(
     prompt_text: str = "",
     prompt_file: str = "",
     input_file: str = "",
+    group_by: str | None = None,
+    indent: int | None = INDENT,
 ) -> Path:
-    """Pretty-printed UTF-8 JSON (ensure_ascii=False)."""
+    """Pretty-printed UTF-8 JSON (ensure_ascii=False). indent=None -> compact."""
     p = Path(path) if path else BASE_DIR / OUT_JSON
-    payload = build_payload(records, prompt_text, prompt_file, input_file)
-    text = json.dumps(payload, indent=INDENT, ensure_ascii=ENSURE_ASCII)
+    payload = build_payload(records, prompt_text, prompt_file, input_file, group_by=group_by)
+    text = json.dumps(payload, indent=indent, ensure_ascii=ENSURE_ASCII)
     p.write_text(text + "\n", encoding="utf-8")
     return p

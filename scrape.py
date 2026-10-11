@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import time
 from collections import deque
 from pathlib import Path
 from urllib.parse import urlparse
@@ -36,8 +37,48 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--fresh", action="store_true", help="Ignore resume log, scrape everything again")
     parser.add_argument("--no-frontier", action="store_true", help="Ignore persisted crawl state; only the input URLs are processed")
     parser.add_argument("--bare", action="store_true", help="Write a bare JSON array of records (no meta wrapper)")
+    parser.add_argument(
+        "--programs-only", action="store_true",
+        help="Write records for program pages only (university pages are crawled for links, not stored)",
+    )
+    parser.add_argument(
+        "--group-by", choices=("none", "university"), default=None,
+        help="Group the final output by university (default: flat array)",
+    )
+    parser.add_argument(
+        "--indent", type=int, default=None, metavar="N",
+        help="JSON indent spaces (0 = compact; default: output_format.INDENT)",
+    )
+    parser.add_argument("--stats", action="store_true", help="Report crawl progress from the logs and exit (no fetching)")
+    parser.add_argument("--limit", type=int, default=None, metavar="N", help="Stop after N new records this run (smoke tests)")
+    parser.add_argument(
+        "--max-runtime", type=float, default=None, metavar="SECONDS",
+        help="Stop this pass cleanly after SECONDS (the queue is kept for the next run)",
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="Debug logging")
     return parser.parse_args(argv)
+
+
+def print_stats(jsonl_path: Path | None, args: argparse.Namespace) -> int:
+    """Progress report + 'is the crawl finished?' exit code (0 = done, 1 = more to do)."""
+    records = output_format.read_jsonl(jsonl_path)
+    frontier = input_format.load_frontier()
+    expanded = input_format.load_expanded()
+    known = list(dict.fromkeys([*(args.input and input_format.load_urls(args.input) or []), *frontier]))
+    pending = [u for u in known if u not in expanded]
+    per_uni: dict[str, int] = {}
+    for record in records:
+        uni = record.get("university") or "Unknown"
+        per_uni[uni] = per_uni.get(uni, 0) + 1
+    log.info("records: %d | universities with programs: %d", len(records), len(per_uni))
+    log.info("crawl state: %d URL(s) known, %d done, %d still to fetch", len(known), len(known) - len(pending), len(pending))
+    errors = output_format.BASE_DIR / output_format.ERRORS_JSONL
+    if errors.exists():
+        log.info("errors log: %s line(s)", sum(1 for _ in errors.open(encoding="utf-8")))
+    top = sorted(per_uni.items(), key=lambda kv: -kv[1])[:10]
+    for uni, count in top:
+        log.info("  %5d  %s", count, uni)
+    return 0 if not pending else 1
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -66,8 +107,9 @@ def main(argv: list[str] | None = None) -> int:
     # 2) resume state
     jsonl_path = Path(args.jsonl) if args.jsonl else None
     no_frontier: bool = args.no_frontier
+    if args.stats:
+        return print_stats(jsonl_path, args)
     if args.fresh:
-        records: list[dict] = []
         done: set[str] = set()
         stale_files = [output_format.jsonl_path(jsonl_path), output_format.BASE_DIR / output_format.ERRORS_JSONL]
         if not no_frontier:
@@ -80,8 +122,7 @@ def main(argv: list[str] | None = None) -> int:
                 stale.unlink()
                 log.info("--fresh: removed %s", stale.name)
     else:
-        records = output_format.read_jsonl(jsonl_path)
-        done = {r.get("program_url", "") for r in records if r.get("program_url")}
+        done = {r.get("program_url", "") for r in output_format.read_jsonl(jsonl_path) if r.get("program_url")}
         if done:
             log.info("resume: %d URL(s) already in %s", len(done), output_format.jsonl_path(jsonl_path).name)
 
@@ -114,8 +155,15 @@ def main(argv: list[str] | None = None) -> int:
             queued.add(u)
             queue.append(u)
     processed = 0
+    deadline = time.monotonic() + args.max_runtime if args.max_runtime else None
     try:
         while queue:
+            if args.limit is not None and counts["records"] >= args.limit:
+                log.info("--limit %d reached, stopping this run (%d URL(s) left for the next run)", args.limit, len(queue))
+                break
+            if deadline is not None and time.monotonic() >= deadline:
+                log.info("--max-runtime %.0fs reached, stopping this pass (%d URL(s) left for the next run)", args.max_runtime, len(queue))
+                break
             url = queue.popleft()
             processed += 1
             tag = f"[{processed} | queued {len(queue)}]"
@@ -192,7 +240,10 @@ def main(argv: list[str] | None = None) -> int:
 
             # --- detail page -> one record in the sample format ---
             final_url = result.final_url or url
-            if url not in done and final_url not in done:
+            is_university_page = urlparse(final_url).path.startswith("/universities/")
+            if args.programs_only and is_university_page:
+                log.debug("%s university page -> links only (no record): %s", tag, urlparse(final_url).path)
+            elif url not in done and final_url not in done:
                 page_parser = parser_for(url)
                 try:
                     record = page_parser.parse(result.html, final_url)
@@ -210,7 +261,6 @@ def main(argv: list[str] | None = None) -> int:
                     continue
 
                 output_format.append_jsonl(record, jsonl_path)
-                records.append(record)
                 done.add(record["program_url"])
                 counts["records"] += 1
                 log.info(
@@ -236,21 +286,27 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         log.warning("interrupted -- writing what we have")
     finally:
-        # 3) output: shape defined in output_format.py
+        # 3) output: shape defined in output_format.py (read back from the JSONL
+        #    so the final record set never has to live in memory during a huge run)
+        final_records = output_format.read_jsonl(jsonl_path)
+        group_by = None if args.group_by in (None, "none") else args.group_by
         out_path = output_format.write_json(
-            records,
+            final_records,
             path=args.out,
             prompt_text=prompt_text,
             prompt_file=prompt_file,
             input_file=input_file,
+            group_by=group_by,
+            indent=output_format.INDENT if args.indent is None else (args.indent or None),
         )
         log.info(
-            "finished: %d records, %d listing page(s) -> %d link(s) discovered, "
-            "%d resumed, %d robots-skipped, %d blocked, %d failed",
+            "finished: %d records this run, %d listing page(s) -> %d link(s) discovered, "
+            "%d resumed, %d robots-skipped, %d blocked, %d failed | %d record(s) on disk",
             counts["records"], counts["listing_pages"], counts["discovered"],
             counts["skipped"], counts["robots"], counts["blocked"], counts["failed"],
+            len(final_records),
         )
-        log.info("output: %s (%d record(s))", out_path, len(records))
+        log.info("output: %s", out_path)
 
     return 1 if counts["failed"] and not counts["records"] else 0
 

@@ -43,7 +43,12 @@ MAX_RETRIES: int = 3
 BACKOFF_BASE: float = 2.0         # 2s, 4s, 8s ...
 TIMEOUT: float = 30.0
 OBEY_ROBOTS: bool = True
+# 401/403 = often a temporary anti-bot wall: cool down and retry a few times,
+# and only stop the domain after that (multi-day runs must survive short blocks).
 BLOCKING_STATUS: tuple[int, ...] = (401, 403)
+MAX_BLOCK_RETRIES: int = 3
+BLOCK_COOLDOWN_BASE: float = 60.0   # 60s, 120s, 240s ...
+BLOCK_COOLDOWN_MAX: float = 900.0   # cap per cooldown
 # 429 = rate limit: honour Retry-After / cool down politely, then stop the domain.
 MAX_RATE_RETRIES: int = 3
 RATE_COOLDOWN_BASE: float = 30.0  # 30s, 60s, 120s ...
@@ -134,6 +139,7 @@ class Fetcher:
 
         attempt = 0
         rate_hits = 0
+        block_hits = 0
         while True:
             self._throttle(domain)
             try:
@@ -166,8 +172,23 @@ class Fetcher:
                 continue
 
             if resp.status_code in BLOCKING_STATUS:
-                self.blocked_domains.add(domain)
-                raise BlockedError(f"HTTP {resp.status_code} from {domain} -> stopping domain")
+                # temporary anti-bot wall: cool down (honour Retry-After if given)
+                block_hits += 1
+                if block_hits > MAX_BLOCK_RETRIES:
+                    self.blocked_domains.add(domain)
+                    raise BlockedError(
+                        f"HTTP {resp.status_code} from {domain} after {MAX_BLOCK_RETRIES} cooldowns -> stopping domain"
+                    )
+                wait = min(BLOCK_COOLDOWN_BASE * 2 ** (block_hits - 1), BLOCK_COOLDOWN_MAX)
+                retry_after = resp.headers.get("Retry-After", "")
+                if retry_after.strip().isdigit():
+                    wait = min(float(retry_after), BLOCK_COOLDOWN_MAX)
+                log.warning(
+                    "HTTP %d from %s -> cooldown %.0fs (%d/%d)",
+                    resp.status_code, domain, wait, block_hits, MAX_BLOCK_RETRIES,
+                )
+                time.sleep(wait)
+                continue
             if resp.status_code == 404:
                 raise FetchError(f"HTTP 404 {url}")
             if resp.status_code >= 500:

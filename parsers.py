@@ -316,25 +316,43 @@ def is_listing_page(jsonld: list[dict[str, Any]]) -> bool:
 
 
 def entity_urls(jsonld: list[dict[str, Any]]) -> list[str]:
-    """Entity links of a listing page (JSON-LD mainEntity / itemListElement)."""
+    """Entity links of a listing page (JSON-LD mainEntity / itemListElement).
+
+    Handles both shapes seen on mastersportal:
+      * universities listing -- SearchResultsPage.mainEntity = [CollegeOrUniversity, ...]
+      * programme listing    -- mainEntity = ItemList { itemListElement: [ListItem, ...] }"""
     urls: list[str] = []
-    for node in jsonld:
-        if not (_types(node) & _LISTING_TYPES):
-            continue
-        raw = node.get("mainEntity") or node.get("itemListElement") or []
+
+    def walk(raw: Any) -> None:
         if isinstance(raw, dict):
             raw = [raw]
+        if not isinstance(raw, list):
+            return
         for item in raw:
             if not isinstance(item, dict):
                 continue
             if str(item.get("@type", "")).lower() == "listitem":
-                item = item.get("item") or {}
-                if not isinstance(item, dict):
-                    continue
+                inner = item.get("item")
+                if isinstance(inner, dict):
+                    item = inner
             link = as_str(item.get("url"))
             if link:
                 urls.append(link)
+            for key in ("mainEntity", "itemListElement"):
+                nested = item.get(key)
+                if isinstance(nested, dict):
+                    walk(nested.get("itemListElement") or nested)
+                elif isinstance(nested, list):
+                    walk(nested)
+
+    for node in jsonld:
+        if not (_types(node) & _LISTING_TYPES):
+            continue
+        walk(node.get("mainEntity") or node.get("itemListElement") or [])
     return urls
+
+
+_LISTING_HREF_RE = re.compile(r"""href=["']([^"']*/(?:universities|studies)/[^"']+)["']""", re.I)
 
 
 def discover(html: str, base_url: str) -> tuple[bool, list[str]]:
@@ -344,27 +362,33 @@ def discover(html: str, base_url: str) -> tuple[bool, list[str]]:
     if not is_listing_page(jsonld):
         return False, []
     host = urlparse(base_url).netloc
-    urls = [u for u in dict.fromkeys(entity_urls(jsonld)) if urlparse(u).netloc == host]
-    return True, urls
+    urls = [urljoin(base_url, u) for u in entity_urls(jsonld)]
+    if not urls:  # JSON-LD missing/empty -> fall back to the page's own links
+        urls = [urljoin(base_url, m.group(1).replace("&amp;", "&")) for m in _LISTING_HREF_RE.finditer(html)]
+    return True, [u for u in dict.fromkeys(urls) if urlparse(u).netloc == host]
 
 
-_STUDIES_HREF_RE = re.compile(r"""href=["']([^"']*?/studies/\d+/[^"']*)["']""", re.I)
+_STUDIES_HREF_RE = re.compile(r"""href=["']([^"']*/studies/\d+/[^"']*)["']""", re.I)
+# the university's FULL programme catalogue: /search/master?oi=<id> ("View more programmes")
+_CATALOGUE_HREF_RE = re.compile(r"""href=["']([^"']*/search/master\?[^"']*oi=\d+[^"']*)["']""", re.I)
 
 
 def program_links(html: str, base_url: str) -> list[str]:
     """Program URLs linked from a university profile page (/universities/...).
 
-    Harvested ONLY from university pages: program pages link 'similar programs',
-    which would balloon the crawl beyond the university's own catalogue."""
+    Also returns the university's full catalogue listing (/search/master?oi=<id>),
+    because the profile page itself only shows a sample of its programmes."""
     if not urlparse(base_url).path.startswith("/universities/"):
         return []
     host = urlparse(base_url).netloc
     found: list[str] = []
-    for m in _STUDIES_HREF_RE.finditer(html):
-        link = urljoin(base_url, m.group(1).replace("&amp;", "&"))
-        if urlparse(link).netloc == host:
-            found.append(strip_tracking(link))
+    for pattern in (_STUDIES_HREF_RE, _CATALOGUE_HREF_RE):
+        for m in pattern.finditer(html):
+            link = urljoin(base_url, m.group(1).replace("&amp;", "&"))
+            if urlparse(link).netloc == host:
+                found.append(strip_tracking(link))
     return list(dict.fromkeys(found))
+
 
 
 def strip_tracking(url: str) -> str:

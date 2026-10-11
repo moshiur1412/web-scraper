@@ -38,6 +38,45 @@ The Southampton record was checked field-by-field against the reference data
 (fee 26,200 GBP/year, IELTS 7 / PTE 76 / Duolingo 130, September 2027 intake,
 official URL, 60 credits, ...).
 
+## Full UK crawl (all 272 universities, every programme)
+
+`urls.txt` seeds the crawl with the mastersportal UK university listing. The crawler
+then walks three levels automatically:
+
+1. **Universities** -- `/search/universities/master/united-kingdom` (paginated) -> 272 university pages.
+2. **Catalogues** -- every university page links its *full* programme catalogue
+   (`/search/master?oi=<id>`), which is paginated (20 per page; e.g. Southampton has
+   402 programmes = 21 pages). The profile page itself only shows a ~85-programme sample.
+3. **Programmes** -- every `/studies/...` page becomes one record.
+
+Everything is discovered, queued and resumed across runs (`frontier.txt` /
+`expanded.txt` / `programs.jsonl`). Realistic volume: **~80k-120k programme pages**
+-- at `--delay 2` that is roughly 40k pages/day, so **3-5 days** of background runs.
+Leave it going with the driver script (it stops by itself when nothing is left):
+
+```bat
+run_full.bat
+```
+
+which loops: crawl pass (max 6h) -> `scrape.py --stats` (exit code 0 = finished)
+-> wait 10 min -> next pass. Restart the machine or the script whenever you like;
+the next pass continues where the previous one stopped. Useful commands while it runs:
+
+```bat
+python scrape.py --stats --input urls.txt     # records, universities, URLs left
+python scrape.py ... --limit 50               # only 50 new records this run (smoke test)
+python scrape.py ... --max-runtime 3600       # stop this pass after an hour
+```
+
+Final output: `programs.json` grouped by university -- `{"meta": {...},
+"universities": {"University of Southampton": [programmes...], ...}}`.
+Use `--group-by none` for a flat array, `--indent 0` for a compact file
+(the grouped file of ~100k records is large; the JSONL on disk is the source of truth).
+
+Flags that exist for this crawl: `--programs-only` (university pages are crawled for
+links but not stored -- no more all-null records), `--group-by university`,
+`--indent N`, `--limit N`, `--max-runtime SECONDS`, `--stats`.
+
 ## CLI options
 
 | Flag | Meaning |
@@ -51,7 +90,13 @@ official URL, 60 credits, ...).
 | `--no-frontier` | Process only the input URLs; do not read/write `frontier.txt` / `expanded.txt` |
 | `--bare` | Write a bare JSON array (no `meta` wrapper) |
 | `--no-next` | Do not follow listing pagination (`rel="next"`) |
-| `--next-limit 20` | Max pages per input URL |
+| `--next-limit 200` | Max pages per listing (default: `input_format.MAX_PAGES_PER_URL`) |
+| `--programs-only` | Store program records only (university pages are crawled for links) |
+| `--group-by university` | Group the output by university instead of a flat array |
+| `--indent 0` | JSON indent spaces (`0` = compact) |
+| `--limit 50` | Stop after N new records (smoke tests) |
+| `--max-runtime 3600` | Stop this pass cleanly after N seconds |
+| `--stats` | Print progress (records, universities, URLs left) and exit; exit code 0 = crawl finished |
 | `--no-robots` | Skip `robots.txt` checks (discouraged) |
 | `-v` | Debug logging |
 
@@ -128,9 +173,11 @@ automatically through the *next* link (same host only).
 - Per-domain delay + random jitter, retry with exponential backoff (max 3),
   honest browser-like User-Agent and headers (mastersportal/Cloudflare returns
   **403 without** `sec-ch-ua` / `sec-fetch-*` headers).
-- On 401/403/429 the domain is stopped (never bypassed), logged, and the run
-  finishes cleanly with whatever was already collected.
-- Tune `USER_AGENT`, `DEFAULT_DELAY`, `MAX_RETRIES` at the top of `fetcher.py`.
+- On 401/403/429 the site gets a **cooldown** (60s-15min, honouring `Retry-After`)
+  and is retried a few times; only after that is the domain stopped for the rest of
+  the pass -- never bypassed. The next pass (or run) tries the domain again.
+- Tune `USER_AGENT`, `DEFAULT_DELAY`, `MAX_RETRIES`, `MAX_BLOCK_RETRIES` at the top
+  of `fetcher.py`.
 
 ## Files
 
@@ -142,6 +189,7 @@ automatically through the *next* link (same host only).
 | `input_format.py` | Input rules: `urls.txt`, `prompt`, frontier/expanded state |
 | `output_format.py` | Output rules: `SCHEMA`, validation, JSONL/JSON writers |
 | `urls.txt` / `prompt` | Input URL list + free-text instructions stored in `meta` |
+| `run_full.bat` | Driver: loops crawl passes until `--stats` says the crawl is finished |
 | `urls_test.txt` / `test_programs.json` | 5-university test input/output |
 | `programs.jsonl` | Append-only resume log (one JSON object per line) |
 | `errors.jsonl` | Rejected records (url + reason) |
