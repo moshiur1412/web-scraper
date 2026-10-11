@@ -10,6 +10,7 @@ Usage in other code:
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,6 +28,20 @@ SKIP_INVALID_LINES: bool = True  # drop lines that are not http(s) URLs
 # --- crawling --------------------------------------------------------------
 FOLLOW_NEXT_PAGES: bool = True   # follow rel="next" links (listing pagination)
 MAX_PAGES_PER_URL: int = 200     # safety cap per listing (4000 items at 20/page)
+
+# --- output folder (derived from the seed URL's country) -------------------
+# /search/universities/master/united-kingdom  ->  uk_university/<University>.json
+COUNTRY_CODES: dict[str, str] = {
+    "united-kingdom": "uk", "uk": "uk", "great-britain": "gb", "england": "uk",
+    "united-states": "us", "usa": "us", "united-states-of-america": "us",
+    "netherlands": "nl", "germany": "de", "france": "fr", "spain": "es",
+    "italy": "it", "ireland": "ie", "australia": "au", "canada": "ca",
+    "switzerland": "ch", "sweden": "se", "poland": "pl", "portugal": "pt",
+    "belgium": "be", "austria": "at", "finland": "fi", "denmark": "dk",
+    "norway": "no", "cyprus": "cy", "malta": "mt", "greece": "gr",
+    "turkey": "tr", "uae": "ae", "malaysia": "my", "india": "in",
+}
+DEFAULT_COUNTRY_CODE: str = "uk"
 
 # Persistent crawl state (so every resumed run can rebuild the queue):
 #   frontier.txt -- every URL discovered so far (append-only)
@@ -112,3 +127,26 @@ def load_input(
 ) -> tuple[list[str], str]:
     """Convenience: read both inputs at once -> (urls, prompt_text)."""
     return load_urls(urls_path), load_prompt(prompt_path)
+
+
+_SEED_COUNTRY_RE = re.compile(r"/search/universities/(?:master|bachelor)/([^/?#]+)", re.I)
+
+
+def country_code(seed_urls: list[str]) -> str:
+    """'.../search/universities/master/united-kingdom' -> 'uk' (fallback: 'uk')."""
+    for url in seed_urls:
+        match = _SEED_COUNTRY_RE.search(url)
+        if not match:
+            continue
+        slug = match.group(1).lower()
+        code = COUNTRY_CODES.get(slug)
+        if code:
+            return code
+        # unknown country slug -> keep the slug itself (e.g. 'japan' -> 'japan')
+        return re.sub(r"[^a-z0-9]+", "_", slug).strip("_") or DEFAULT_COUNTRY_CODE
+    return DEFAULT_COUNTRY_CODE
+
+
+def output_dir_for(seed_urls: list[str]) -> Path:
+    """Per-country output folder: uk_university/, us_university/, ..."""
+    return BASE_DIR / f"{country_code(seed_urls)}_university"

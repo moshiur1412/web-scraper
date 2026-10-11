@@ -15,7 +15,7 @@ set PASS_SECONDS=21600
 
 :loop
 echo [%date% %time%] === crawl pass === >> crawl_run.log
-python scrape.py --input urls.txt --out programs.json --delay %DELAY% --max-runtime %PASS_SECONDS% --programs-only --group-by university >> crawl_run.log 2>&1
+python scrape.py --input urls.txt --delay %DELAY% --max-runtime %PASS_SECONDS% --programs-only --split-by-university >> crawl_run.log 2>&1
 if errorlevel 2 goto fail
 
 python scrape.py --stats --input urls.txt --jsonl programs.jsonl >> crawl_run.log 2>&1

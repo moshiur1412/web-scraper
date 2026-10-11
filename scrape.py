@@ -46,6 +46,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Group the final output by university (default: flat array)",
     )
     parser.add_argument(
+        "--split-by-university", action="store_true",
+        help="Write one JSON file per university into the country folder "
+             "(e.g. uk_university/University of Southampton.json) -- best for huge crawls",
+    )
+    parser.add_argument(
+        "--out-dir", default=None, metavar="DIR",
+        help="Folder for --split-by-university (default: <country>_university from the seed URL)",
+    )
+    parser.add_argument(
         "--indent", type=int, default=None, metavar="N",
         help="JSON indent spaces (0 = compact; default: output_format.INDENT)",
     )
@@ -146,6 +155,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     counts = {"records": 0, "failed": 0, "skipped": 0, "blocked": 0, "robots": 0, "listing_pages": 0, "discovered": 0}
+    touched: set[str] = set()  # universities that got new records this pass
     page_limit = args.next_limit or input_format.MAX_PAGES_PER_URL
     follow_next = not args.no_next and input_format.FOLLOW_NEXT_PAGES
     queue: deque[str] = deque()
@@ -262,6 +272,7 @@ def main(argv: list[str] | None = None) -> int:
 
                 output_format.append_jsonl(record, jsonl_path)
                 done.add(record["program_url"])
+                touched.add(record.get("university") or "Unknown")
                 counts["records"] += 1
                 log.info(
                     "%s ok: %s",
@@ -290,15 +301,31 @@ def main(argv: list[str] | None = None) -> int:
         #    so the final record set never has to live in memory during a huge run)
         final_records = output_format.read_jsonl(jsonl_path)
         group_by = None if args.group_by in (None, "none") else args.group_by
-        out_path = output_format.write_json(
-            final_records,
-            path=args.out,
-            prompt_text=prompt_text,
-            prompt_file=prompt_file,
-            input_file=input_file,
-            group_by=group_by,
-            indent=output_format.INDENT if args.indent is None else (args.indent or None),
-        )
+        indent = output_format.INDENT if args.indent is None else (args.indent or None)
+        if args.split_by_university:
+            out_dir = Path(args.out_dir) if args.out_dir else input_format.output_dir_for(urls)
+            written = output_format.write_university_files(
+                final_records,
+                out_dir,
+                only=touched or None,
+                country_code=input_format.country_code(urls),
+                indent=indent,
+            )
+            log.info(
+                "output: %d university file(s) updated in %s (index.json rebuilt from %d record(s))",
+                len(written), out_dir, len(final_records),
+            )
+        if not args.split_by_university or group_by:
+            out_path = output_format.write_json(
+                final_records,
+                path=args.out,
+                prompt_text=prompt_text,
+                prompt_file=prompt_file,
+                input_file=input_file,
+                group_by=group_by,
+                indent=indent,
+            )
+            log.info("output: %s", out_path)
         log.info(
             "finished: %d records this run, %d listing page(s) -> %d link(s) discovered, "
             "%d resumed, %d robots-skipped, %d blocked, %d failed | %d record(s) on disk",
@@ -306,7 +333,6 @@ def main(argv: list[str] | None = None) -> int:
             counts["skipped"], counts["robots"], counts["blocked"], counts["failed"],
             len(final_records),
         )
-        log.info("output: %s", out_path)
 
     return 1 if counts["failed"] and not counts["records"] else 0
 

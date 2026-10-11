@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -204,3 +205,61 @@ def write_json(
     text = json.dumps(payload, indent=indent, ensure_ascii=ENSURE_ASCII)
     p.write_text(text + "\n", encoding="utf-8")
     return p
+
+
+# --- one file per university (huge crawls: 272 files instead of one) --------
+_UNSAFE_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def safe_filename(name: str) -> str:
+    """'SOAS University of London' -> 'SOAS University of London' (Windows-safe)."""
+    cleaned = _UNSAFE_FILENAME_CHARS.sub("_", name).strip(" .")
+    cleaned = re.sub(r"\s{2,}", " ", cleaned)
+    return cleaned or "unnamed"
+
+
+def write_university_files(
+    records: list[dict[str, Any]],
+    out_dir: str | Path,
+    only: set[str] | None = None,
+    country_code: str = "",
+    indent: int | None = INDENT,
+) -> list[Path]:
+    """Write <out_dir>/<University Name>.json for each university.
+
+    `only` limits the write to universities touched in this pass (their files are
+    the only ones that changed); `index.json` is always rebuilt from the full
+    record set so it stays a complete, cheap overview."""
+    directory = Path(out_dir)
+    directory.mkdir(parents=True, exist_ok=True)
+    grouped = group_records(records, "university")
+    written: list[Path] = []
+    for university, programs in grouped.items():
+        if only is not None and university not in only:
+            continue
+        payload = {
+            "university": university,
+            "country_code": country_code,
+            "program_count": len(programs),
+            "generated_at": now_iso(),
+            "programs": programs,
+        }
+        path = directory / f"{safe_filename(university)}.json"
+        text = json.dumps(payload, indent=indent, ensure_ascii=ENSURE_ASCII)
+        path.write_text(text + "\n", encoding="utf-8")
+        written.append(path)
+
+    index = {
+        "generated_at": now_iso(),
+        "country_code": country_code,
+        "university_count": len(grouped),
+        "program_count": len(records),
+        "universities": [
+            {"university": uni, "file": f"{safe_filename(uni)}.json", "program_count": len(progs)}
+            for uni, progs in grouped.items()
+        ],
+    }
+    (directory / "index.json").write_text(
+        json.dumps(index, indent=indent, ensure_ascii=ENSURE_ASCII) + "\n", encoding="utf-8"
+    )
+    return written

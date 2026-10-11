@@ -8,8 +8,14 @@ __pycache__/
 frontier.txt
 expanded.txt
 errors.jsonl
-scrape_run*.log
 *.log
 
-# local test resume log (sample output test_programs.json is committed)
+# generated output -- large, rebuilt any time from programs.jsonl
+programs.json
+uk_university/
+us_university/
+*_university/
+test_split*
+
+# local test resume log (the sample test_programs.json IS committed)
 test_programs.jsonl
