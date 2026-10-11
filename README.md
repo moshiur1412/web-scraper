@@ -30,9 +30,11 @@ The crawler then walks three levels automatically and persists everything:
 | 2. Catalogues | each university page links its **full** catalogue `/search/master?oi=<id>` (paginated, 20/page; the profile page only shows a ~85-programme sample) | ~2,000-3,000 pages |
 | 3. Programmes | every `/studies/...` page -> one record | **~70k-100k pages** (272 x 250+) |
 
-Realistic expectations at the default `--delay 2` (1 request / 2 s, polite):
+Realistic expectations at the driver's pace (`run_full.bat` uses `--delay 4`, i.e. 1
+request / ~4.5 s -- slow on purpose, mastersportal 429s anything faster):
 
-- **Time:** ~40k pages/day -> **2-4 days** of continuous background running.
+- **Time:** ~15k pages/day -> **7-10 days** of continuous background running.
+  (The crawl yields politely to rate limits instead of pushing through them.)
 - **Disk:** ~1.5-3 KB of JSONL per record -> **0.3-0.5 GB** crawl state + output.
 - **Output:** ~272 files in `uk_university/` (one per university, 250+ programs each).
 
@@ -45,7 +47,7 @@ run_full.bat
 The driver loops **passes** and stops by itself when the crawl is complete:
 
 ```
-pass (max 6 h of scraping) -> scrape.py --stats -> if URLs remain: wait 10 min -> next pass
+pass (max 6 h of scraping) -> scrape.py --stats -> if URLs remain: wait 15 min -> next pass
 ```
 
 Every pass is **resumable**: the queue lives in `frontier.txt`, finished URLs in
@@ -70,7 +72,7 @@ Exit code `0` = nothing left to fetch (the driver exits with `CRAWL COMPLETE`),
 ### Manual control
 
 ```bat
-python scrape.py --input urls.txt --delay 2 --programs-only --split-by-university
+python scrape.py --input urls.txt --delay 4 --programs-only --split-by-university
 python scrape.py --stats --input urls.txt              # progress report
 python scrape.py ... --max-runtime 3600                # stop this pass after 1 h
 python scrape.py ... --limit 50                        # stop after 50 new records (smoke test)
@@ -78,8 +80,10 @@ python scrape.py ... --fresh                           # DANGER: deletes resume 
 ```
 
 If a pass stops early because mastersportal pushed back (HTTP 403/429), the fetcher
-cools down 60 s-15 min (honouring `Retry-After`) and retries; the domain is only
-stopped for the rest of the pass. The next pass tries again -- just keep the driver running.
+cools down politely (429: 1 min doubling up to 30 min, honouring `Retry-After`; up to
+~1.2 h of patience per pass) and retries; only then is the domain stopped **for the rest
+of that pass**. The driver waits 15 minutes and the next pass picks the same queue up --
+just keep `run_full.bat` running, nothing is lost.
 
 ## 3. Output layout (built for huge data)
 
@@ -155,7 +159,7 @@ Other output modes (optional):
 | Flag | Meaning |
 |------|---------|
 | `--input urls.txt` | URL list file (default: `input_format.URLS_FILE`) |
-| `--delay 2` | Seconds between requests to the same domain (+ 0-1 s jitter) |
+| `--delay 4` | Seconds between requests to the same domain (+ 0-1 s jitter) |
 | `--timeout 30` | HTTP timeout in seconds |
 | `--split-by-university` | Write one file per university into `<country>_university/` |
 | `--out-dir DIR` | Folder for `--split-by-university` (default: derived from the seed URL) |
@@ -216,7 +220,8 @@ official URL, 60 credits, ...).
 - Per-domain delay + random jitter, retry with exponential backoff (max 3),
   honest browser-like User-Agent and headers (mastersportal/Cloudflare returns
   **403 without** `sec-ch-ua` / `sec-fetch-*` headers).
-- On 401/403/429 the site gets a **cooldown** (60s-15min, honouring `Retry-After`)
+- On 401/403/429 the site gets a **cooldown** (429: 1 min doubling up to 30 min,
+  honouring `Retry-After`; up to ~1.2 h of patience per pass)
   and is retried a few times; only after that is the domain stopped for the rest of
   the pass -- never bypassed. The next pass (or run) tries the domain again.
 - Tune `USER_AGENT`, `DEFAULT_DELAY`, `MAX_RETRIES`, `MAX_BLOCK_RETRIES` at the top

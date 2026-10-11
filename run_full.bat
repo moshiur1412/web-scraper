@@ -10,8 +10,11 @@ setlocal
 cd /d "%~dp0"
 call .venv\Scripts\activate.bat
 
-set DELAY=2
+rem  Rate-limit friendly: ~4.5s/request (~15k pages/day), and each pass can sit
+rem  through up to ~1.2h of 429 cooldowns before giving up on mastersportal.
+set DELAY=4
 set PASS_SECONDS=21600
+set PASS_GAP_SECONDS=900
 
 :loop
 echo [%date% %time%] === crawl pass === >> crawl_run.log
@@ -21,8 +24,8 @@ if errorlevel 2 goto fail
 python scrape.py --stats --input urls.txt --jsonl programs.jsonl >> crawl_run.log 2>&1
 if not errorlevel 1 goto done
 
-echo [%date% %time%] more work left - waiting 10 minutes before the next pass... >> crawl_run.log
-timeout /t 600 /nobreak >nul
+echo [%date% %time%] more work left - waiting 15 minutes before the next pass... >> crawl_run.log
+timeout /t %PASS_GAP_SECONDS% /nobreak >nul
 goto loop
 
 :done

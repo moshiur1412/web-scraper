@@ -50,9 +50,11 @@ MAX_BLOCK_RETRIES: int = 3
 BLOCK_COOLDOWN_BASE: float = 60.0   # 60s, 120s, 240s ...
 BLOCK_COOLDOWN_MAX: float = 900.0   # cap per cooldown
 # 429 = rate limit: honour Retry-After / cool down politely, then stop the domain.
-MAX_RATE_RETRIES: int = 3
-RATE_COOLDOWN_BASE: float = 30.0  # 30s, 60s, 120s ...
-RATE_COOLDOWN_MAX: float = 600.0  # cap for server-provided Retry-After
+# Multi-day runs must ride out long rate-limit stretches, so the patience is generous:
+# 60+120+240+480+960+1800s (~1.2 h) before a pass gives up on a domain.
+MAX_RATE_RETRIES: int = 6
+RATE_COOLDOWN_BASE: float = 60.0  # 60s, 120s, 240s ...
+RATE_COOLDOWN_MAX: float = 1800.0  # cap for server-provided Retry-After
 
 
 class BlockedError(RuntimeError):
