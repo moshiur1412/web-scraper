@@ -1,15 +1,15 @@
 @echo off
 rem ===========================================================================
-rem  Crawl ONE university batch (50 universities) to completion.
+rem  Crawl ONE university batch to completion.
 rem
-rem  Usage:   run_batch.bat 1        (universities 001-050)
-rem           run_batch.bat 2        (universities 051-100)
+rem  Usage:   run_batch.bat 1        (first batch:  batches\batch_01.txt)
+rem           run_batch.bat 2        (second batch: batches\batch_02.txt)
 rem           ...
-rem           run_batch.bat 6        (universities 251-272, 22 universities)
+rem           run_batch.bat 7        (any batch you created - see README #5)
 rem
 rem  Batches share one crawl state + one output folder (uk_university/), so
-rem  run them ONE AFTER ANOTHER. Each batch only crawls its own universities;
-rem  already-scraped programmes are never fetched twice (resume log).
+rem  run them ONE AFTER ANOTHER (never in parallel). Each batch only crawls its
+rem  own URLs; already-scraped programmes are never fetched twice (resume log).
 rem  Progress is appended to crawl_run.log.
 rem ===========================================================================
 setlocal enabledelayedexpansion
@@ -17,20 +17,30 @@ cd /d "%~dp0"
 call .venv\Scripts\activate.bat
 
 if "%~1"=="" (
-  echo Usage: run_batch.bat ^<batch-number 1-6^>
-  echo   1 = universities 001-050,  2 = 051-100, ...  6 = 251-272
+  echo Usage: run_batch.bat ^<batch-number^>
+  echo   e.g. run_batch.bat 1        = crawl batches\batch_01.txt
+  echo   List existing batches:  dir /b batches\batch_*.txt
+  echo   New batch from a URL list:  create_batch.bat my_urls.txt
   exit /b 2
 )
-set /a BN=%~1
+
+rem accept "1", "01", "007" ... (set /a would read 08/09 as octal -> strip zeros)
+set "ARG=%~1"
+if "%ARG:~0,1%"=="0" set "ARG=%ARG:~1%"
+set /a BN=ARG 2>nul
+if not defined BN goto bad
 if %BN% LSS 1 goto bad
-if %BN% GTR 6 goto bad
 
 rem zero-pad the batch number to match batches\batch_NN.txt
-set PAD=0%BN%
-set PAD=%PAD:~-2%
-set BATCHFILE=batches\batch_%PAD%.txt
+set "PAD=%BN%"
+if %BN% LSS 10 set "PAD=0%BN%"
+set "BATCHFILE=batches\batch_%PAD%.txt"
 if not exist "%BATCHFILE%" (
-  echo [ERROR] missing %BATCHFILE% - run make_batches.py first
+  echo [ERROR] %BATCHFILE% not found.
+  echo         Existing batches:
+  dir /b batches\batch_*.txt 2>nul
+  echo         Make a new one:  create_batch.bat my_urls.txt
+  echo         or:              python make_batches.py --input my_urls.txt
   exit /b 2
 )
 
@@ -55,11 +65,13 @@ goto loop
 
 :done
 echo [%date% %time%] === BATCH %BN% COMPLETE === >> crawl_run.log
-echo Batch %BN% complete. Next: run_batch.bat %BN%+1   (or run_all_batches.bat for all)
+echo Batch %BN% complete.
+echo Next:  dir /b batches\batch_*.txt   then   run_batch.bat ^<next number^>
+echo        (run_all_batches.bat runs every remaining batch by itself)
 exit /b 0
 
 :bad
-echo Usage: run_batch.bat ^<batch-number 1-6^>
+echo Usage: run_batch.bat ^<batch-number^>
 exit /b 2
 
 :fail
